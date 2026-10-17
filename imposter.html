@@ -92,6 +92,7 @@
   .secret.crew{border-color:var(--ok);box-shadow:0 0 40px rgba(46,229,157,.2)}
   .tag{display:inline-block;padding:6px 12px;border-radius:99px;background:var(--card2);border:1px solid var(--line);
     font-size:14px;color:var(--warn);font-weight:600}
+  .tag.bigtag{font-size:22px;padding:8px 20px;font-weight:800}
   .progress{display:flex;gap:6px;justify-content:center}
   .progress i{width:22px;height:5px;border-radius:9px;background:var(--line);transition:background .2s}
   .progress i.d{background:var(--grad)}
@@ -129,8 +130,8 @@
 <script>
 /* ---------- Wörter laden (aus imposter-woerter.js) ---------- */
 const FALLBACK_WORDS = [
-  ["Pizza","Rund & heiß aus dem Ofen"],["Elefant","Sehr groß & grau"],["Strand","Sand überall"],
-  ["Fahrrad","Zwei Räder, Muskelkraft"],["Vulkan","Spuckt Feuer"],["Kino","Dunkel mit Leinwand"]
+  ["Pizza","Italien"],["Elefant","Rüssel"],["Strand","Sand"],
+  ["Fahrrad","Pedale"],["Vulkan","Lava"],["Kino","Leinwand"]
 ];
 const WORDS_OK = (typeof WORDS !== "undefined") && Array.isArray(WORDS) && WORDS.length > 0;
 const WORD_LIST = WORDS_OK ? WORDS : FALLBACK_WORDS;
@@ -209,7 +210,7 @@ function startGame(){
   const order = shuffle(S.players.map((_, i) => i));
   const imps = new Set(shuffle(S.players.map((_, i) => i)).slice(0, S.imposters));
   S.game = { word: pick[0], hint: pick[1], imps, order, idx: 0, revealed: false,
-             starter: Math.floor(Math.random() * n), round: 1 };
+             starter: Math.floor(Math.random() * n) };
   S.screen = "reveal";
   save();
   render();
@@ -268,7 +269,7 @@ function renderHome(){
     <div class="card">
       <h2>Einstellungen</h2>
       <div class="setting">
-        <div><b>Tipp für Imposter</b><span>Imposter bekommen einen Hinweis zum Wort</span></div>
+        <div><b>Tipp für Imposter</b><span>Imposter bekommen ein Tipp-Wort</span></div>
         <button class="switch ${S.hint ? "on" : ""}" data-a="hint" role="switch" aria-checked="${S.hint}" aria-label="Tipp"></button>
       </div>
       <div class="setting">
@@ -318,19 +319,19 @@ function renderRules(){
       <ol>
         <li>Das Handy geht reihum. Der Spieler, dessen Name angezeigt wird, tippt auf die Karte.</li>
         <li>Crew-Mitglieder sehen das geheime Wort. Imposter sehen „IMPOSTER“.</li>
-        <li>Ist der Tipp an, bekommt der Imposter einen kurzen Hinweis zum Wort. Der Hinweis ist nur ein vager Anhaltspunkt, nicht das Wort selbst.</li>
+        <li>Ist der Tipp an, bekommt der Imposter zusätzlich ein einzelnes Tipp-Wort. Es ist nur ein vager Anhaltspunkt, nicht das geheime Wort selbst.</li>
         <li>Mit „Verstanden“ wird die Karte wieder verdeckt und das Handy weitergegeben.</li>
       </ol>
 
-      <h3>💬 Wortrunden</h3>
-      <p>Ein zufälliger Spieler beginnt. Reihum sagt jeder einen Begriff, der zum Wort passt, aber nicht zu offensichtlich ist. So viele Wortrunden wie ihr wollt: Mit „Nächste Wortrunde“ zählt die App mit. Ihr könnt dazwischen frei diskutieren und Verdächtige befragen.</p>
+      <h3>💬 Diskussion</h3>
+      <p>Ein zufälliger Spieler beginnt. Danach sagt reihum jeder einen Begriff, der zum Wort passt, aber nicht zu offensichtlich ist. Ihr könnt frei diskutieren und Verdächtige befragen, so lange ihr wollt.</p>
       <ul>
         <li>Die Crew will zeigen, dass sie das Wort kennt, ohne es dem Imposter zu verraten.</li>
         <li>Der Imposter hört gut zu und versucht, sich unauffällig anzupassen.</li>
       </ul>
 
       <h3>🗳️ Abstimmung</h3>
-      <p>Wenn ihr euch sicher genug fühlt, stimmt ihr gemeinsam ab, wer der Imposter ist. Danach tippt ihr auf „Auflösung“.</p>
+      <p>Wenn ihr euch sicher genug fühlt, stimmt ihr gemeinsam ab, wer der Imposter ist. Danach tippt ihr auf „Zur Auflösung“.</p>
 
       <h3>🏆 Punkte</h3>
       <ul>
@@ -364,7 +365,7 @@ function renderReveal(){
   }else if(isImp){
     card = `<div class="secret imp">
       <div class="emoji">🕵️</div><div class="word">IMPOSTER</div>
-      ${S.hint ? `<div class="muted">Dein Tipp</div><div class="tag">${esc(g.hint)}</div>`
+      ${S.hint ? `<div class="muted">Dein Tipp</div><div class="tag bigtag">${esc(g.hint)}</div>`
                : `<div class="muted">Du kennst das Wort nicht. Tarne dich!</div>`}
     </div>`;
   }else{
@@ -381,7 +382,7 @@ function renderReveal(){
       </div>
       ${card}
       ${g.revealed
-        ? `<button class="btn block" data-a="next">${g.idx + 1 < n ? "Verstanden – weitergeben" : "Verstanden – Runde starten"}</button>`
+        ? `<button class="btn block" data-a="next">${g.idx + 1 < n ? "Verstanden – weitergeben" : "Verstanden – Spiel starten"}</button>`
         : `<div class="hint">Gib das Handy an <b>${esc(name)}</b></div>`}
     </div>`;
 }
@@ -395,19 +396,16 @@ function renderPlay(){
   $app.innerHTML = `
     <div class="center">
       <div>
-        <div class="logo" style="font-size:26px">WORTRUNDE ${g.round}</div>
+        <div class="logo" style="font-size:26px">DISKUSSION</div>
         <div class="sub">${g.imps.size} Imposter · Tipp ${S.hint ? "an" : "aus"}</div>
       </div>
       <div class="card" style="margin:0">
         <div class="muted">Es beginnt</div>
         <div class="big" style="margin:6px 0 10px">${esc(S.players[g.starter].name)}</div>
-        <div class="muted" style="font-size:14px">Sagt reihum Begriffe zum Wort und diskutiert. So viele Runden ihr wollt. Stimmt ab, sobald ihr bereit seid.</div>
+        <div class="muted" style="font-size:14px">Sagt reihum Begriffe zum Wort und diskutiert, so lange ihr wollt. Stimmt ab, sobald ihr bereit seid.</div>
         <div class="chips">${chips}</div>
       </div>
-      <div>
-        <button class="btn ghost block" data-a="nextround" style="margin-bottom:10px">➕ Nächste Wortrunde</button>
-        <button class="btn block" data-a="resolve">Abstimmung beendet – Auflösung</button>
-      </div>
+      <button class="btn block" data-a="resolve">Zur Auflösung</button>
     </div>`;
 }
 
@@ -423,7 +421,6 @@ function renderResult(){
         ${S.hint ? `<div class="tag">Tipp: ${esc(g.hint)}</div>` : ""}
         <div class="muted" style="margin:16px 0 6px">${g.imps.size > 1 ? "Die Imposter waren" : "Der Imposter war"}</div>
         <div>${imps}</div>
-        <div class="muted" style="margin-top:12px;font-size:13px">Nach ${g.round} Wortrunde${g.round > 1 ? "n" : ""}</div>
       </div>
       <div>
         <div class="muted" style="margin-bottom:10px">Wer hat gewonnen?</div>
@@ -505,7 +502,6 @@ document.addEventListener("click", e => {
       S.game.idx++; S.game.revealed = false;
       if(S.game.idx >= S.game.order.length) S.screen = "play";
       render(); break;
-    case "nextround": S.game.round++; renderPlay(); toast("Wortrunde " + S.game.round); break;
     case "resolve": S.screen = "result"; render(); break;
     case "crewwin":
       S.gains = S.players.map((p, k) => S.game.imps.has(k) ? 0 : 1);

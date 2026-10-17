@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0b0d12">
+<title>Imposter</title>
+<style>
+  :root{
+    --bg:#0b0d12; --card:#151922; --card2:#1c2230; --line:#262d3d;
+    --text:#f2f4f8; --muted:#8c95a8;
+    --a1:#ff3b6b; --a2:#7c5cff; --ok:#2ee59d; --warn:#ffb020;
+    --grad:linear-gradient(135deg,var(--a1),var(--a2));
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  body{min-height:100vh;
+    background:
+      radial-gradient(600px 300px at 10% -5%,rgba(255,59,107,.18),transparent 60%),
+      radial-gradient(600px 300px at 100% 0%,rgba(124,92,255,.2),transparent 60%),
+      var(--bg);
+    background-attachment:fixed;}
+  #app{max-width:480px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 120px);}
+  header{text-align:center;margin-bottom:14px}
+  .logo{font-size:34px;font-weight:900;letter-spacing:4px;
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .sub{color:var(--muted);font-size:13px;margin-top:2px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .card h2{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:700}
+  .row{display:flex;align-items:center;gap:10px}
+  .grow{flex:1;min-width:0}
+  input[type=text]{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:14px;
+    color:var(--text);font-size:16px;padding:14px;outline:none;transition:border .2s}
+  input[type=text]:focus{border-color:var(--a2)}
+  button{font:inherit;color:inherit;border:0;cursor:pointer}
+  a{color:inherit;text-decoration:none}
+  .btn{display:inline-block;text-align:center;background:var(--grad);color:#fff;font-weight:700;border-radius:14px;padding:14px 18px;font-size:16px;
+    transition:transform .1s,opacity .2s}
+  .btn:active{transform:scale(.97)}
+  .btn.block{width:100%}
+  .btn.ghost{background:var(--card2);border:1px solid var(--line);color:var(--text)}
+  .btn.ok{background:linear-gradient(135deg,#1fcf8a,#16a0c9)}
+  .btn.bad{background:linear-gradient(135deg,#ff3b6b,#ff7a3b)}
+  .btn:disabled{opacity:.4}
+  .btn small{font-weight:500;opacity:.9;font-size:12px}
+  .icon{width:38px;height:38px;border-radius:12px;background:var(--card2);border:1px solid var(--line);
+    font-size:18px;display:grid;place-items:center;flex:none}
+  .icon:active{transform:scale(.92)}
+  .player{display:flex;align-items:center;gap:10px;padding:10px;background:var(--card2);border:1px solid var(--line);
+    border-radius:14px;margin-top:8px;animation:pop .25s ease}
+  @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .avatar{width:36px;height:36px;border-radius:50%;background:var(--grad);display:grid;place-items:center;
+    font-weight:800;flex:none}
+  .pname{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pts{font-weight:800;min-width:34px;text-align:center;font-variant-numeric:tabular-nums}
+  .pts small{display:block;font-size:9px;color:var(--muted);font-weight:600;letter-spacing:1px}
+  .empty{color:var(--muted);text-align:center;font-size:14px;padding:10px 0 2px}
+  .setting{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0}
+  .setting + .setting{border-top:1px solid var(--line);margin-top:8px;padding-top:14px}
+  .setting b{display:block;font-size:15px}
+  .setting span{color:var(--muted);font-size:12px}
+  .switch{width:54px;height:32px;border-radius:99px;background:var(--card2);border:1px solid var(--line);
+    position:relative;flex:none;transition:background .25s}
+  .switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;
+    background:#fff;transition:transform .25s}
+  .switch.on{background:var(--grad);border-color:transparent}
+  .switch.on::after{transform:translateX(22px)}
+  .stepper{display:flex;align-items:center;gap:10px}
+  .stepper .val{font-size:22px;font-weight:800;min-width:26px;text-align:center}
+  .bottom{position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(env(safe-area-inset-bottom) + 14px);
+    background:linear-gradient(to top,var(--bg) 60%,transparent);}
+  .bottom .inner{max-width:480px;margin:0 auto}
+  .hint{color:var(--muted);font-size:12px;text-align:center;margin-top:10px}
+  .warnbox{background:rgba(255,176,32,.1);border:1px solid var(--warn);color:var(--warn);
+    border-radius:14px;padding:10px 12px;font-size:13px;margin-bottom:14px;line-height:1.4}
+  .link{background:none;color:var(--muted);font-size:13px;text-decoration:underline;padding:8px}
+  /* Spielscreens */
+  .center{min-height:70vh;display:flex;flex-direction:column;justify-content:center;gap:18px;text-align:center}
+  .big{font-size:26px;font-weight:800}
+  .muted{color:var(--muted)}
+  .secret{border-radius:26px;padding:34px 20px;min-height:260px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:10px;border:1px solid var(--line);background:var(--card);
+    user-select:none;transition:transform .15s}
+  .secret:active{transform:scale(.98)}
+  .secret.hidden{background:repeating-linear-gradient(45deg,var(--card),var(--card) 12px,var(--card2) 12px,var(--card2) 24px)}
+  .secret .emoji{font-size:54px}
+  .secret .word{font-size:34px;font-weight:900;word-break:break-word}
+  .secret.imp{border-color:var(--a1);box-shadow:0 0 40px rgba(255,59,107,.35)}
+  .secret.imp .word{color:var(--a1)}
+  .secret.crew{border-color:var(--ok);box-shadow:0 0 40px rgba(46,229,157,.2)}
+  .tag{display:inline-block;padding:6px 12px;border-radius:99px;background:var(--card2);border:1px solid var(--line);
+    font-size:14px;color:var(--warn);font-weight:600}
+  .progress{display:flex;gap:6px;justify-content:center}
+  .progress i{width:22px;height:5px;border-radius:9px;background:var(--line);transition:background .2s}
+  .progress i.d{background:var(--grad)}
+  .impname{display:inline-block;margin:4px;padding:8px 14px;border-radius:99px;background:rgba(255,59,107,.15);
+    border:1px solid var(--a1);font-weight:700}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}
+  .chip{padding:6px 12px;border-radius:99px;background:var(--card2);border:1px solid var(--line);font-size:13px}
+  .chip.first{border-color:var(--a2);color:#fff;font-weight:700}
+  .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 10px);transform:translateX(-50%);
+    background:var(--card2);border:1px solid var(--line);padding:8px 14px;border-radius:99px;font-size:12px;
+    color:var(--muted);opacity:0;transition:opacity .3s;pointer-events:none;z-index:9}
+  .toast.show{opacity:1}
+  /* Ranking */
+  .rank{display:flex;align-items:center;gap:10px;padding:12px;background:var(--card2);border:1px solid var(--line);
+    border-radius:16px;margin-top:8px;animation:pop .3s ease both;text-align:left}
+  .rank.r1{border-color:#ffd24a;box-shadow:0 0 24px rgba(255,210,74,.18)}
+  .rank .pos{width:34px;text-align:center;font-size:22px;font-weight:800;flex:none}
+  .gain{font-size:12px;font-weight:800;color:var(--ok);background:rgba(46,229,157,.12);border:1px solid var(--ok);
+    border-radius:99px;padding:2px 8px}
+  .rank .total{font-size:22px;font-weight:900;min-width:36px;text-align:right;font-variant-numeric:tabular-nums}
+  /* Regeln */
+  .rules h3{margin:18px 0 6px;font-size:16px}
+  .rules h3:first-child{margin-top:0}
+  .rules p,.rules li{color:#c9d0de;font-size:14px;line-height:1.55;margin:0 0 6px}
+  .rules ul,.rules ol{padding-left:20px;margin:0 0 6px}
+  .back{display:flex;align-items:center;gap:8px;background:none;color:var(--muted);font-size:15px;padding:6px 0;margin-bottom:10px}
+</style>
+<!-- Wörter aus extra Datei (muss im selben Ordner liegen) -->
+<script src="imposter-woerter.js"></script>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+<div id="app"></div>
+
+<script>
+/* ---------- Wörter laden (aus imposter-woerter.js) ---------- */
+const FALLBACK_WORDS = [
+  ["Pizza","Rund & heiß aus dem Ofen"],["Elefant","Sehr groß & grau"],["Strand","Sand überall"],
+  ["Fahrrad","Zwei Räder, Muskelkraft"],["Vulkan","Spuckt Feuer"],["Kino","Dunkel mit Leinwand"]
+];
+const WORDS_OK = (typeof WORDS !== "undefined") && Array.isArray(WORDS) && WORDS.length > 0;
+const WORD_LIST = WORDS_OK ? WORDS : FALLBACK_WORDS;
+
+/* ---------- Speicher: Cookie (mit Fallback) ---------- */
+const COOKIE = "imposter_data";
+let storageMode = "none";
+
+function readCookie(){
+  try{
+    const m = document.cookie.split("; ").find(r => r.startsWith(COOKIE + "="));
+    return m ? decodeURIComponent(m.slice(COOKIE.length + 1)) : null;
+  }catch(e){ return null; }
+}
+function writeCookie(val){
+  try{
+    document.cookie = COOKIE + "=" + encodeURIComponent(val) + ";max-age=31536000;path=/;SameSite=Lax";
+    return readCookie() === val;
+  }catch(e){ return false; }
+}
+function save(){
+  const data = JSON.stringify({
+    p: S.players.map(p => [p.name, p.points]),
+    h: S.hint ? 1 : 0,
+    i: S.imposters
+  });
+  if(writeCookie(data)){ storageMode = "cookie"; return; }
+  try{ localStorage.setItem(COOKIE, data); storageMode = "local"; }
+  catch(e){ storageMode = "memory"; }
+}
+function load(){
+  let raw = readCookie();
+  if(raw) storageMode = "cookie";
+  if(!raw){
+    try{ raw = localStorage.getItem(COOKIE); if(raw) storageMode = "local"; }catch(e){}
+  }
+  if(!raw) return;
+  try{
+    const d = JSON.parse(raw);
+    S.players = (d.p || []).map(x => ({name:String(x[0]), points:Number(x[1]) || 0}));
+    S.hint = d.h !== 0;
+    S.imposters = Math.max(1, Number(d.i) || 1);
+  }catch(e){}
+}
+
+/* ---------- State ---------- */
+const S = {
+  players: [],
+  hint: true,
+  imposters: 1,
+  screen: "home",
+  game: null,
+  gains: []
+};
+load();
+
+/* ---------- Helpers ---------- */
+const $app = document.getElementById("app");
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const maxImp = () => Math.max(1, Math.floor((S.players.length - 1) / 2));
+const shuffle = a => { a = a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 1800);
+}
+
+/* ---------- Spiel starten ---------- */
+function startGame(){
+  const n = S.players.length;
+  if(n < 3) return toast("Mindestens 3 Spieler nötig");
+  if(S.imposters > maxImp()) S.imposters = maxImp();
+  const last = S.game ? S.game.word : null;
+  let pick;
+  do{ pick = WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)]; }while(pick[0] === last && WORD_LIST.length > 1);
+  const order = shuffle(S.players.map((_, i) => i));
+  const imps = new Set(shuffle(S.players.map((_, i) => i)).slice(0, S.imposters));
+  S.game = { word: pick[0], hint: pick[1], imps, order, idx: 0, revealed: false,
+             starter: Math.floor(Math.random() * n), round: 1 };
+  S.screen = "reveal";
+  save();
+  render();
+  window.scrollTo(0, 0);
+}
+
+/* ---------- Render ---------- */
+function render(){
+  if(S.screen === "home") return renderHome();
+  if(S.screen === "rules") return renderRules();
+  if(S.screen === "reveal") return renderReveal();
+  if(S.screen === "play") return renderPlay();
+  if(S.screen === "result") return renderResult();
+  if(S.screen === "rank") return renderRank();
+}
+
+function renderHome(){
+  const n = S.players.length;
+  const players = n ? S.players.map((p, i) => `
+    <div class="player">
+      <div class="avatar">${esc(p.name.charAt(0).toUpperCase())}</div>
+      <div class="grow pname">${esc(p.name)}</div>
+      <div class="pts">${p.points}<small>PKT</small></div>
+      <button class="icon" data-a="del" data-i="${i}" aria-label="Entfernen">✕</button>
+    </div>`).join("") : `<div class="empty">Noch keine Spieler. Füge mindestens 3 hinzu.</div>`;
+
+  const storageText = {
+    cookie:"💾 Namen & Punkte sind im Cookie gespeichert",
+    local:"💾 Cookies nicht verfügbar – lokal im Browser gespeichert",
+    memory:"⚠️ Speichern nicht möglich (nur bis zum Neuladen)",
+    none:"💾 Wird automatisch im Cookie gespeichert"
+  }[storageMode];
+
+  $app.innerHTML = `
+    <div class="row" style="margin-bottom:14px">
+      <a class="btn ghost grow" href="index.html">← Index</a>
+      <button class="btn ghost grow" data-a="rules">📖 Regeln</button>
+    </div>
+
+    <header>
+      <div class="logo">IMPOSTER</div>
+      <div class="sub">Wer kennt das Wort nicht?</div>
+    </header>
+
+    ${WORDS_OK ? "" : `<div class="warnbox">⚠️ Die Datei <b>imposter-woerter.js</b> wurde nicht gefunden. Es werden nur ${FALLBACK_WORDS.length} Notfall-Wörter verwendet. Lege die Datei in denselben Ordner wie diese Seite.</div>`}
+
+    <div class="card">
+      <h2>Spieler (${n})</h2>
+      <form class="row" id="addForm" autocomplete="off">
+        <div class="grow"><input type="text" id="nameInput" placeholder="Name eingeben…" maxlength="20" enterkeyhint="done"></div>
+        <button class="btn" type="submit">Hinzufügen</button>
+      </form>
+      ${players}
+    </div>
+
+    <div class="card">
+      <h2>Einstellungen</h2>
+      <div class="setting">
+        <div><b>Tipp für Imposter</b><span>Imposter bekommen einen Hinweis zum Wort</span></div>
+        <button class="switch ${S.hint ? "on" : ""}" data-a="hint" role="switch" aria-checked="${S.hint}" aria-label="Tipp"></button>
+      </div>
+      <div class="setting">
+        <div><b>Anzahl Imposter</b><span>Max. ${maxImp()} bei ${n} Spielern</span></div>
+        <div class="stepper">
+          <button class="icon" data-a="impdec" aria-label="Weniger">−</button>
+          <div class="val">${Math.min(S.imposters, maxImp())}</div>
+          <button class="icon" data-a="impinc" aria-label="Mehr">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Speicher</h2>
+      <div class="row">
+        <button class="btn ghost grow" data-a="resetpts">Punkte zurücksetzen</button>
+        <button class="btn ghost grow" data-a="clearall">Alles löschen</button>
+      </div>
+      <div class="hint">${storageText}</div>
+    </div>
+
+    <div class="bottom"><div class="inner">
+      <button class="btn block" data-a="start" ${n < 3 ? "disabled" : ""}>Spiel starten</button>
+    </div></div>
+  `;
+}
+
+function renderRules(){
+  $app.innerHTML = `
+    <button class="back" data-a="menu">← Zurück</button>
+    <header>
+      <div class="logo" style="font-size:28px">REGELN</div>
+      <div class="sub">So funktioniert Imposter</div>
+    </header>
+    <div class="card rules">
+      <h3>🎯 Idee</h3>
+      <p>Alle Spieler bekommen dasselbe geheime Wort – außer dem Imposter. Er kennt das Wort nicht und muss so tun, als ob. Die Crew will den Imposter finden, der Imposter will unentdeckt bleiben.</p>
+
+      <h3>📱 Vorbereitung</h3>
+      <ul>
+        <li>Mindestens 3 Spieler eintragen.</li>
+        <li>Anzahl der Imposter einstellen (maximal die Hälfte der Spieler, abgerundet und abzüglich eins).</li>
+        <li>Tipp für Imposter ein- oder ausschalten.</li>
+      </ul>
+
+      <h3>🤫 Wörter verteilen</h3>
+      <ol>
+        <li>Das Handy geht reihum. Der Spieler, dessen Name angezeigt wird, tippt auf die Karte.</li>
+        <li>Crew-Mitglieder sehen das geheime Wort. Imposter sehen „IMPOSTER“.</li>
+        <li>Ist der Tipp an, bekommt der Imposter einen kurzen Hinweis zum Wort. Der Hinweis ist nur ein vager Anhaltspunkt, nicht das Wort selbst.</li>
+        <li>Mit „Verstanden“ wird die Karte wieder verdeckt und das Handy weitergegeben.</li>
+      </ol>
+
+      <h3>💬 Wortrunden</h3>
+      <p>Ein zufälliger Spieler beginnt. Reihum sagt jeder einen Begriff, der zum Wort passt, aber nicht zu offensichtlich ist. So viele Wortrunden wie ihr wollt: Mit „Nächste Wortrunde“ zählt die App mit. Ihr könnt dazwischen frei diskutieren und Verdächtige befragen.</p>
+      <ul>
+        <li>Die Crew will zeigen, dass sie das Wort kennt, ohne es dem Imposter zu verraten.</li>
+        <li>Der Imposter hört gut zu und versucht, sich unauffällig anzupassen.</li>
+      </ul>
+
+      <h3>🗳️ Abstimmung</h3>
+      <p>Wenn ihr euch sicher genug fühlt, stimmt ihr gemeinsam ab, wer der Imposter ist. Danach tippt ihr auf „Auflösung“.</p>
+
+      <h3>🏆 Punkte</h3>
+      <ul>
+        <li><b>Crew gewinnt</b> (Imposter enttarnt): +1 Punkt für jeden Crew-Spieler.</li>
+        <li><b>Imposter gewinnt</b> (nicht erwischt): +2 Punkte für jeden Imposter.</li>
+        <li>Nach der Punktevergabe seht ihr das Ranking und könnt eine neue Runde starten.</li>
+      </ul>
+
+      <h3>💡 Tipps</h3>
+      <ul>
+        <li>Mit mehreren Imposter ist es schwerer, sie alle zu finden.</li>
+        <li>Namen und Punkte werden automatisch gespeichert.</li>
+      </ul>
+    </div>
+    <button class="btn block" data-a="menu">Verstanden</button>
+  `;
+  window.scrollTo(0, 0);
+}
+
+function renderReveal(){
+  const g = S.game, n = g.order.length;
+  const pi = g.order[g.idx];
+  const name = S.players[pi].name;
+  const isImp = g.imps.has(pi);
+  const dots = g.order.map((_, i) => `<i class="${i <= g.idx ? "d" : ""}"></i>`).join("");
+  let card;
+  if(!g.revealed){
+    card = `<div class="secret hidden" data-a="show">
+      <div class="emoji">👆</div><div class="big">Tippen zum Aufdecken</div>
+      <div class="muted">Nur du darfst schauen!</div></div>`;
+  }else if(isImp){
+    card = `<div class="secret imp">
+      <div class="emoji">🕵️</div><div class="word">IMPOSTER</div>
+      ${S.hint ? `<div class="muted">Dein Tipp</div><div class="tag">${esc(g.hint)}</div>`
+               : `<div class="muted">Du kennst das Wort nicht. Tarne dich!</div>`}
+    </div>`;
+  }else{
+    card = `<div class="secret crew">
+      <div class="emoji">🔑</div><div class="muted">Das geheime Wort</div>
+      <div class="word">${esc(g.word)}</div></div>`;
+  }
+  $app.innerHTML = `
+    <div class="center">
+      <div class="progress">${dots}</div>
+      <div>
+        <div class="muted">Spieler ${g.idx + 1} von ${n}</div>
+        <div class="big">${esc(name)}</div>
+      </div>
+      ${card}
+      ${g.revealed
+        ? `<button class="btn block" data-a="next">${g.idx + 1 < n ? "Verstanden – weitergeben" : "Verstanden – Runde starten"}</button>`
+        : `<div class="hint">Gib das Handy an <b>${esc(name)}</b></div>`}
+    </div>`;
+}
+
+function renderPlay(){
+  const g = S.game, n = S.players.length;
+  const chips = Array.from({length:n}, (_, k) => {
+    const idx = (g.starter + k) % n;
+    return `<span class="chip ${k === 0 ? "first" : ""}">${k + 1}. ${esc(S.players[idx].name)}</span>`;
+  }).join("");
+  $app.innerHTML = `
+    <div class="center">
+      <div>
+        <div class="logo" style="font-size:26px">WORTRUNDE ${g.round}</div>
+        <div class="sub">${g.imps.size} Imposter · Tipp ${S.hint ? "an" : "aus"}</div>
+      </div>
+      <div class="card" style="margin:0">
+        <div class="muted">Es beginnt</div>
+        <div class="big" style="margin:6px 0 10px">${esc(S.players[g.starter].name)}</div>
+        <div class="muted" style="font-size:14px">Sagt reihum Begriffe zum Wort und diskutiert. So viele Runden ihr wollt. Stimmt ab, sobald ihr bereit seid.</div>
+        <div class="chips">${chips}</div>
+      </div>
+      <div>
+        <button class="btn ghost block" data-a="nextround" style="margin-bottom:10px">➕ Nächste Wortrunde</button>
+        <button class="btn block" data-a="resolve">Abstimmung beendet – Auflösung</button>
+      </div>
+    </div>`;
+}
+
+function renderResult(){
+  const g = S.game;
+  const imps = [...g.imps].map(i => `<span class="impname">🕵️ ${esc(S.players[i].name)}</span>`).join("");
+  $app.innerHTML = `
+    <div class="center">
+      <div class="logo" style="font-size:26px">AUFLÖSUNG</div>
+      <div class="card" style="margin:0">
+        <div class="muted">Das Wort war</div>
+        <div class="big" style="margin:6px 0 4px">${esc(g.word)}</div>
+        ${S.hint ? `<div class="tag">Tipp: ${esc(g.hint)}</div>` : ""}
+        <div class="muted" style="margin:16px 0 6px">${g.imps.size > 1 ? "Die Imposter waren" : "Der Imposter war"}</div>
+        <div>${imps}</div>
+        <div class="muted" style="margin-top:12px;font-size:13px">Nach ${g.round} Wortrunde${g.round > 1 ? "n" : ""}</div>
+      </div>
+      <div>
+        <div class="muted" style="margin-bottom:10px">Wer hat gewonnen?</div>
+        <div class="row">
+          <button class="btn ok grow" data-a="crewwin">Crew<br><small>+1 Punkt je Spieler</small></button>
+          <button class="btn bad grow" data-a="impwin">Imposter<br><small>+2 Punkte je Imposter</small></button>
+        </div>
+        <button class="link" data-a="nopoints">Ohne Punkte beenden</button>
+      </div>
+    </div>`;
+}
+
+function renderRank(){
+  const sorted = S.players.map((p, i) => ({p, i}))
+    .sort((a, b) => b.p.points - a.p.points);
+  let rank = 0, prev = null;
+  const rows = sorted.map((o, k) => {
+    if(o.p.points !== prev){ rank = k + 1; prev = o.p.points; }
+    const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank + ".";
+    const gain = S.gains[o.i] || 0;
+    return `<div class="rank ${rank === 1 ? "r1" : ""}" style="animation-delay:${k * 60}ms">
+      <div class="pos">${medal}</div>
+      <div class="avatar">${esc(o.p.name.charAt(0).toUpperCase())}</div>
+      <div class="grow pname">${esc(o.p.name)}</div>
+      ${gain > 0 ? `<span class="gain">+${gain}</span>` : ""}
+      <div class="total">${o.p.points}</div>
+    </div>`;
+  }).join("");
+  $app.innerHTML = `
+    <header>
+      <div class="logo" style="font-size:28px">RANKING</div>
+      <div class="sub">Aktueller Punktestand</div>
+    </header>
+    <div class="card">${rows}</div>
+    <div class="bottom"><div class="inner">
+      <button class="btn block" data-a="again" style="margin-bottom:10px">🔁 Noch eine Runde</button>
+      <button class="btn ghost block" data-a="menu">Zum Hauptmenü</button>
+    </div></div>`;
+  window.scrollTo(0, 0);
+}
+
+/* ---------- Events ---------- */
+document.addEventListener("submit", e => {
+  if(e.target.id !== "addForm") return;
+  e.preventDefault();
+  const inp = document.getElementById("nameInput");
+  const name = inp.value.trim();
+  if(!name) return;
+  if(S.players.some(p => p.name.toLowerCase() === name.toLowerCase())) return toast("Name gibt es schon");
+  if(S.players.length >= 20) return toast("Maximal 20 Spieler");
+  S.players.push({name, points:0});
+  save(); renderHome();
+  document.getElementById("nameInput").focus();
+});
+
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-a]");
+  if(!el) return;
+  const a = el.dataset.a, i = Number(el.dataset.i);
+  switch(a){
+    case "del": S.players.splice(i, 1); if(S.imposters > maxImp()) S.imposters = maxImp(); save(); renderHome(); break;
+    case "hint": S.hint = !S.hint; save(); renderHome(); break;
+    case "impinc": if(S.imposters < maxImp()){ S.imposters++; save(); } else toast("Mehr Spieler für mehr Imposter nötig"); renderHome(); break;
+    case "impdec": if(S.imposters > 1){ S.imposters--; save(); } renderHome(); break;
+    case "resetpts":
+      if(el.dataset.sure){ S.players.forEach(p => p.points = 0); save(); renderHome(); toast("Punkte zurückgesetzt"); }
+      else{ el.dataset.sure = 1; el.textContent = "Sicher? Nochmal tippen"; }
+      break;
+    case "clearall":
+      if(el.dataset.sure){ S.players = []; S.imposters = 1; save(); renderHome(); toast("Alles gelöscht"); }
+      else{ el.dataset.sure = 1; el.textContent = "Sicher? Nochmal tippen"; }
+      break;
+    case "rules": S.screen = "rules"; render(); break;
+    case "menu": S.screen = "home"; S.game = null; render(); window.scrollTo(0, 0); break;
+    case "start": startGame(); break;
+    case "again": startGame(); break;
+    case "show": S.game.revealed = true; renderReveal(); break;
+    case "next":
+      S.game.idx++; S.game.revealed = false;
+      if(S.game.idx >= S.game.order.length) S.screen = "play";
+      render(); break;
+    case "nextround": S.game.round++; renderPlay(); toast("Wortrunde " + S.game.round); break;
+    case "resolve": S.screen = "result"; render(); break;
+    case "crewwin":
+      S.gains = S.players.map((p, k) => S.game.imps.has(k) ? 0 : 1);
+      finish(); break;
+    case "impwin":
+      S.gains = S.players.map((p, k) => S.game.imps.has(k) ? 2 : 0);
+      finish(); break;
+    case "nopoints": S.gains = S.players.map(() => 0); finish(); break;
+  }
+});
+
+function finish(){
+  S.players.forEach((p, k) => p.points += (S.gains[k] || 0));
+  save();
+  S.screen = "rank";
+  render();
+}
+
+render();
+</script>
+</body>
+</html>

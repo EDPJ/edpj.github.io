@@ -136,38 +136,30 @@ const FALLBACK_WORDS = [
 const WORDS_OK = (typeof WORDS !== "undefined") && Array.isArray(WORDS) && WORDS.length > 0;
 const WORD_LIST = WORDS_OK ? WORDS : FALLBACK_WORDS;
 
-/* ---------- Speicher: Cookie (mit Fallback) ---------- */
-const COOKIE = "imposter_data";
+/* ---------- Speicher: nur lokal (localStorage) ---------- */
+const KEY = "imposter_data";
 let storageMode = "none";
 
-function readCookie(){
-  try{
-    const m = document.cookie.split("; ").find(r => r.startsWith(COOKIE + "="));
-    return m ? decodeURIComponent(m.slice(COOKIE.length + 1)) : null;
-  }catch(e){ return null; }
-}
-function writeCookie(val){
-  try{
-    document.cookie = COOKIE + "=" + encodeURIComponent(val) + ";max-age=31536000;path=/;SameSite=Lax";
-    return readCookie() === val;
-  }catch(e){ return false; }
-}
 function save(){
   const data = JSON.stringify({
     p: S.players.map(p => [p.name, p.points]),
     h: S.hint ? 1 : 0,
     i: S.imposters
   });
-  if(writeCookie(data)){ storageMode = "cookie"; return; }
-  try{ localStorage.setItem(COOKIE, data); storageMode = "local"; }
-  catch(e){ storageMode = "memory"; }
-}
-function load(){
-  let raw = readCookie();
-  if(raw) storageMode = "cookie";
-  if(!raw){
-    try{ raw = localStorage.getItem(COOKIE); if(raw) storageMode = "local"; }catch(e){}
+  try{
+    localStorage.setItem(KEY, data);
+    storageMode = "local";
+  }catch(e){
+    storageMode = "memory";
   }
+}
+
+function load(){
+  let raw = null;
+  try{
+    raw = localStorage.getItem(KEY);
+    if(raw) storageMode = "local";
+  }catch(e){}
   if(!raw) return;
   try{
     const d = JSON.parse(raw);
@@ -238,10 +230,9 @@ function renderHome(){
     </div>`).join("") : `<div class="empty">Noch keine Spieler. Füge mindestens 3 hinzu.</div>`;
 
   const storageText = {
-    cookie:"💾 Namen & Punkte sind im Cookie gespeichert",
-    local:"💾 Cookies nicht verfügbar – lokal im Browser gespeichert",
+    local:"💾 Namen & Punkte sind nur lokal auf diesem Gerät gespeichert",
     memory:"⚠️ Speichern nicht möglich (nur bis zum Neuladen)",
-    none:"💾 Wird automatisch im Cookie gespeichert"
+    none:"💾 Wird nur lokal auf diesem Gerät gespeichert"
   }[storageMode];
 
   $app.innerHTML = `

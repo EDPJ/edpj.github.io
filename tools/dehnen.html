@@ -110,14 +110,14 @@
   @media (prefers-reduced-motion:reduce){.bar>div{transition:none}}
 </style>
 <!-- Übungen aus extra Datei (muss im selben Ordner liegen) -->
-<script src="uebungen.js"></script>
+<script src="dehnen-uebungen.js"></script>
 </head>
 <body>
 <div id="toast" class="toast"></div>
 <div id="app"></div>
 
 <script>
-/* ---------- Übungen laden (aus uebungen.js) ---------- */
+/* ---------- Übungen laden (aus dehnen-uebungen.js) ---------- */
 const EX_OK = (typeof EX !== "undefined") && Array.isArray(EX) && EX.length > 0;
 const LIST = EX_OK ? EX : [];
 const CFG = (typeof EINSTELLUNGEN !== "undefined" && EINSTELLUNGEN) ? EINSTELLUNGEN : {};
@@ -356,14 +356,14 @@ function renderHome(){
 
   $app.innerHTML = `
     <div class="row" style="margin-bottom:14px">
-      <a class="btn ghost grow" href="index.html">← Home</a>
+      <a class="btn ghost grow" href="/index.html">← Home</a>
       <button class="btn ghost grow" data-a="rules">📖 Ablauf</button>
     </div>
     <header>
       <div class="logo">DEHNEN</div>
       <div class="sub">Rücken &amp; Beine · ${esc(dt)}</div>
     </header>
-    ${EX_OK ? "" : `<div class="warnbox">⚠️ Die Datei <b>uebungen.js</b> wurde nicht gefunden oder ist leer. Lege sie in denselben Ordner wie diese Seite.</div>`}
+    ${EX_OK ? "" : `<div class="warnbox">⚠️ Die Datei <b>dehnen-uebungen.js</b> wurde nicht gefunden oder ist leer. Lege sie in denselben Ordner wie diese Seite.</div>`}
     ${allDone ? `<div class="okbox">🎉 Geschafft! Morgen ab 3:00 Uhr geht es von vorn los.</div>` : ""}
     <div class="card">
       <h2>Heute (${S.done.length} von ${N})</h2>

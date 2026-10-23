@@ -129,12 +129,8 @@
 
 <script>
 /* ---------- Wörter laden (aus imposter-woerter.js) ---------- */
-const FALLBACK_WORDS = [
-  ["Pizza","Italien"],["Elefant","Rüssel"],["Strand","Sand"],
-  ["Fahrrad","Pedale"],["Vulkan","Lava"],["Kino","Leinwand"]
-];
 const WORDS_OK = (typeof WORDS !== "undefined") && Array.isArray(WORDS) && WORDS.length > 0;
-const WORD_LIST = WORDS_OK ? WORDS : FALLBACK_WORDS;
+const WORD_LIST = WORDS_OK ? WORDS : [];
 
 /* ---------- Speicher: nur lokal (localStorage) ---------- */
 const KEY = "imposter_data";
@@ -194,6 +190,7 @@ function toast(msg){
 /* ---------- Spiel starten ---------- */
 function startGame(){
   const n = S.players.length;
+  if(!WORDS_OK) return toast("Wörterdatei fehlt");
   if(n < 3) return toast("Mindestens 3 Spieler nötig");
   if(S.imposters > maxImp()) S.imposters = maxImp();
   const last = S.game ? S.game.word : null;
@@ -246,7 +243,7 @@ function renderHome(){
       <div class="sub">Wer kennt das Wort nicht?</div>
     </header>
 
-    ${WORDS_OK ? "" : `<div class="warnbox">⚠️ Die Datei <b>imposter-woerter.js</b> wurde nicht gefunden. Es werden nur ${FALLBACK_WORDS.length} Notfall-Wörter verwendet. Lege die Datei in denselben Ordner wie diese Seite.</div>`}
+    ${WORDS_OK ? "" : `<div class="warnbox">⚠️ Die Datei <b>imposter-woerter.js</b> wurde nicht gefunden. Lege die Datei in denselben Ordner wie diese Seite.</div>`}
 
     <div class="card">
       <h2>Spieler (${n})</h2>
@@ -283,7 +280,7 @@ function renderHome(){
     </div>
 
     <div class="bottom"><div class="inner">
-      <button class="btn block" data-a="start" ${n < 3 ? "disabled" : ""}>Spiel starten</button>
+      <button class="btn block" data-a="start" ${(n < 3 || !WORDS_OK) ? "disabled" : ""}>Spiel starten</button>
     </div></div>
   `;
 }

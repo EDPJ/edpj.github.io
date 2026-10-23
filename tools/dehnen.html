@@ -402,7 +402,7 @@ function renderPlay(){
   const dots = LIST.map((_, i) => `<i class="${S.done.includes(i) ? "d" : ""} ${i === S.current ? "c" : ""}"></i>`).join("");
   const finishing = isFinishing();
   const nextLabel = finishing
-    ? (isDone ? "🏁 Beenden" : "🏁 Erledigt &amp; beenden")
+    ? (isDone ? "✓ Beenden" : "✓ Erledigt &amp; beenden")
     : (isDone ? "Weiter →" : "✓ Erledigt &amp; weiter");
   $app.innerHTML = `
     <div class="topnav"><button class="btn ghost navbtn" data-a="menu">📋 Zur Übersicht</button></div>

@@ -69,17 +69,14 @@
   .muted{color:var(--muted)}
   .big{font-size:26px;font-weight:800}
   .back{display:flex;align-items:center;gap:8px;background:none;color:var(--muted);font-size:15px;padding:6px 0;margin-bottom:10px}
-  .tag{display:inline-block;padding:6px 12px;border-radius:99px;background:var(--card2);border:1px solid var(--line);
-    font-size:13px;color:var(--warn);font-weight:600;margin:3px}
+  /* Zurück-zur-Übersicht-Button während der Übungen */
+  .topnav{margin-bottom:14px}
+  .navbtn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;font-size:15px;border-radius:12px}
   .progress{display:flex;gap:6px;justify-content:center;margin-bottom:14px}
   .progress i{width:22px;height:5px;border-radius:9px;background:var(--line);transition:background .2s}
   .progress i.d{background:var(--ok)}
   .progress i.c{background:var(--grad)}
   .head{text-align:center;margin-bottom:14px}
-  .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 10px);transform:translateX(-50%);
-    background:var(--card2);border:1px solid var(--line);padding:8px 14px;border-radius:99px;font-size:12px;
-    color:var(--muted);opacity:0;transition:opacity .3s;pointer-events:none;z-index:20}
-  .toast.show{opacity:1}
   .bar{height:8px;background:var(--card2);border:1px solid var(--line);border-radius:99px;overflow:hidden}
   .bar>div{height:100%;width:100%;background:var(--ok);transform-origin:left center;transform:scaleX(0);will-change:transform;transition:transform .5s ease}
   .figure{padding:10px 10px 0;text-align:center}
@@ -93,7 +90,6 @@
   .tbar>div{height:100%;width:100%;background:var(--grad);transform-origin:left center;transform:scaleX(0);will-change:transform}
   .tbar.prep>div{background:var(--warn)}
   .timer .btn{margin-top:14px}
-  .timer .btn[hidden]{display:none}
   .rules h3{margin:0 0 6px;font-size:16px}
   .rules p,.rules li{color:#c9d0de;font-size:14px;line-height:1.55;margin:0 0 6px}
   .rules ul{padding-left:20px;margin:0 0 6px}
@@ -109,11 +105,12 @@
   @media (orientation:landscape) and (max-height:500px){.figure svg{max-height:50vh}}
   @media (prefers-reduced-motion:reduce){.bar>div{transition:none}}
 </style>
+<!-- Toasts aus extra Datei (muss im selben Ordner liegen) -->
+<script src="toast.js"></script>
 <!-- Übungen aus extra Datei (muss im selben Ordner liegen) -->
 <script src="dehnen-uebungen.js"></script>
 </head>
 <body>
-<div id="toast" class="toast"></div>
 <div id="app"></div>
 
 <script>
@@ -129,11 +126,6 @@ const N = LIST.length;
 const $app = document.getElementById("app");
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const pad = n => String(n).padStart(2,"0");
-function toast(msg){
-  const t = document.getElementById("toast");
-  t.textContent = msg; t.classList.add("show");
-  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 1800);
-}
 function figureSVG(p){
   let s = '<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" role="img">';
   if(p.wall) s += '<line class="wall" x1="274" y1="15" x2="274" y2="180"/>';
@@ -148,7 +140,7 @@ function figureSVG(p){
 
 /* ---------- Speicher: lokal, Tag wechselt um 3:00 Uhr ---------- */
 const KEY = "dehnen_data";
-let storageMode = "none";
+let storageOk = true;
 function logicalDay(){
   const d = new Date(Date.now() - 3*3600*1000);
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -157,12 +149,12 @@ const S = { day:logicalDay(), done:[], current:0, screen:"home" };
 function save(){
   try{
     localStorage.setItem(KEY, JSON.stringify({d:S.day, done:S.done, c:S.current}));
-    storageMode = "local";
-  }catch(e){ storageMode = "memory"; }
+    storageOk = true;
+  }catch(e){ storageOk = false; }
 }
 function load(){
   let raw = null;
-  try{ raw = localStorage.getItem(KEY); if(raw) storageMode = "local"; }catch(e){}
+  try{ raw = localStorage.getItem(KEY); }catch(e){}
   if(!raw) return;
   try{
     const d = JSON.parse(raw);
@@ -181,37 +173,32 @@ function ensureDay(){
 }
 setInterval(ensureDay, 15000);
 document.addEventListener("visibilitychange", () => {
-  if(!document.hidden){ ensureDay(); if(T.running){ requestWake(); tick(); } }
+  if(!document.hidden){
+    ensureDay();
+    if(S.screen === "play") requestWake();
+    if(T.running) tick();
+  }
 });
 
-/* ---------- Ton, Vibration, Bildschirm wach ---------- */
-let audioCtx = null;
-function unlockAudio(){
-  try{
-    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-    if(audioCtx.state === "suspended") audioCtx.resume();
-  }catch(e){}
-}
-["pointerdown","touchstart","click"].forEach(ev => document.addEventListener(ev, unlockAudio, {passive:true}));
-function beep(freq=880, dur=0.18){
-  try{
-    if(!audioCtx) return;
-    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-    o.frequency.value = freq; o.connect(g); g.connect(audioCtx.destination);
-    g.gain.setValueAtTime(0.25, audioCtx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
-    o.start(); o.stop(audioCtx.currentTime + dur);
-  }catch(e){}
-}
-function buzz(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
-let wakeLock = null;
+/* ---------- Bildschirm wach halten (solange eine Übung geöffnet ist) ---------- */
+let wakeLock = null, wakePending = false;
 async function requestWake(){
-  try{ if("wakeLock" in navigator && !wakeLock){
-    wakeLock = await navigator.wakeLock.request("screen");
-    wakeLock.addEventListener("release", () => { wakeLock = null; });
-  } }catch(e){}
+  if(!("wakeLock" in navigator) || wakeLock || wakePending || document.hidden) return;
+  wakePending = true;
+  try{
+    const lock = await navigator.wakeLock.request("screen");
+    wakeLock = lock;
+    lock.addEventListener("release", () => {
+      if(wakeLock !== lock) return;          /* absichtlich freigegeben */
+      wakeLock = null;                       /* vom System freigegeben -> neu anfordern */
+      if(S.screen === "play") requestWake();
+    });
+  }catch(e){}
+  wakePending = false;
 }
-function releaseWake(){ try{ if(wakeLock){ wakeLock.release(); wakeLock = null; } }catch(e){} }
+function releaseWake(){
+  try{ if(wakeLock){ const l = wakeLock; wakeLock = null; l.release(); } }catch(e){}
+}
 
 /* ---------- Timer (performance.now + requestAnimationFrame = flüssiger Balken) ---------- */
 const T = { phases:[], total:0, i:0, phaseRem:0, running:false, started:false, finished:false,
@@ -246,31 +233,23 @@ function runTimer(){
   T.iv = setInterval(tick, 250);
   const frame = () => { tick(); if(T.running) T.raf = requestAnimationFrame(frame); };
   T.raf = requestAnimationFrame(frame);
-  requestWake();
 }
 function tick(){
   if(!T.running) return;
   const el = (performance.now() - T.startTs) / 1000;
   if(el >= T.total){
     T.finished = true; T.running = false; T.i = T.phases.length - 1; T.phaseRem = 0;
-    stopLoops(); beep(1200,.5); buzz([300,100,300]); releaseWake();
+    stopLoops();
     updateTimerUI(); return;
   }
   let acc = 0, idx = 0;
   while(idx < T.phases.length - 1 && el >= acc + T.phases[idx].t){ acc += T.phases[idx].t; idx++; }
   let changed = false;
-  if(idx !== T.i){
-    T.i = idx; T.lastSec = null; changed = true;
-    const hold = T.phases[idx].type === "hold";
-    beep(hold ? 988 : 660); buzz(hold ? [120] : [60,60,60]);
-  }
+  if(idx !== T.i){ T.i = idx; T.lastSec = null; changed = true; }
   const ph = T.phases[idx], inPhase = el - acc;
   T.phaseRem = ph.t - inPhase;
   const secs = Math.ceil(T.phaseRem);
-  if(secs !== T.lastSec){
-    T.lastSec = secs; changed = true;
-    if(ph.type !== "hold" && secs >= 1 && secs <= 3) beep(520,.08);
-  }
+  if(secs !== T.lastSec){ T.lastSec = secs; changed = true; }
   if(changed) updateTimerUI();
   if(barEl) barEl.style.transform = "scaleX(" + Math.min(1, inPhase / ph.t).toFixed(4) + ")";
 }
@@ -291,9 +270,6 @@ function updateTimerUI(){
   if(label !== lastPhaseTxt){ phaseEl.textContent = label; lastPhaseTxt = label; }
   if(T.finished) barEl.style.transform = "scaleX(1)";
   else if(!T.started) barEl.style.transform = "scaleX(0)";
-  /* Neustart-Button nur, wenn der Timer NICHT läuft */
-  const rb = document.getElementById("restartBtn");
-  rb.hidden = T.running;
   const nb = document.getElementById("nextBtn");
   if(nb) nb.classList.toggle("pulse", T.finished);
 }
@@ -307,20 +283,30 @@ function openExercise(i, autostart){
   window.scrollTo(0, 0);
 }
 function toMenu(){
-  setupTimer(false); releaseWake();
+  setupTimer(false);
   S.screen = "home"; render(); window.scrollTo(0, 0);
 }
+/* Beendet der nächste Klick das gesamte Programm? */
+function isFinishing(){
+  if(!S.done.includes(S.current)) return S.done.length === N - 1;
+  return S.done.length >= N && S.current === N - 1;
+}
 function nextExercise(){
-  const wasDone = S.done.includes(S.current);
-  if(!wasDone) S.done.push(S.current);
-  if(!wasDone && S.done.length === N){
-    save(); toMenu(); toast("🎉 Alle Übungen geschafft!");
+  if(isFinishing()){
+    const firstTime = !S.done.includes(S.current);
+    if(firstTime) S.done.push(S.current);
+    save(); toMenu();
+    if(firstTime) toast("🎉 Alle Übungen geschafft!", "success");
     return;
   }
+  if(!S.done.includes(S.current)) S.done.push(S.current);
   let next = -1;
-  for(let k = 1; k <= N; k++){ const j = (S.current + k) % N; if(!S.done.includes(j)){ next = j; break; } }
-  if(next < 0) next = (S.current + 1) % N;
-  openExercise(next, true);
+  if(S.done.length >= N){
+    next = S.current + 1;                   /* Wiederholungsrunde: einfach der Reihe nach */
+  }else{
+    for(let k = 1; k <= N; k++){ const j = (S.current + k) % N; if(!S.done.includes(j)){ next = j; break; } }
+  }
+  openExercise(next < 0 ? 0 : next, true);
 }
 function startButtonAction(){
   if(!N) return;
@@ -331,9 +317,10 @@ function startButtonAction(){
 
 /* ---------- Render ---------- */
 function render(){
-  if(S.screen === "rules") return renderRules();
-  if(S.screen === "play" && N) return renderPlay();
+  if(S.screen === "rules"){ releaseWake(); return renderRules(); }
+  if(S.screen === "play" && N){ requestWake(); return renderPlay(); }
   S.screen = "home";
+  releaseWake();
   renderHome();
 }
 
@@ -346,17 +333,15 @@ function renderHome(){
       <div class="grow"><div class="pname">${esc(e.name)}</div><div class="parea">${esc(e.area)}</div></div>
       <div class="pts">${e.sides ? "2×" + e.sec : e.sec} s</div>
     </button>`).join("") : `<div class="empty">Keine Übungen geladen.</div>`;
-  const storageText = {
-    local:"💾 Fortschritt ist nur lokal auf diesem Gerät gespeichert",
-    memory:"⚠️ Speichern nicht möglich (nur bis zum Neuladen)",
-    none:"💾 Wird nur lokal auf diesem Gerät gespeichert"
-  }[storageMode];
+  const storageText = storageOk
+    ? "💾 Wird nur lokal auf diesem Gerät gespeichert"
+    : "⚠️ Speichern nicht möglich (nur bis zum Neuladen)";
   const allDone = N > 0 && S.done.length >= N;
   const label = allDone ? "Noch einmal durchgehen" : (S.done.length > 0 ? "Weitermachen" : "Beginnen");
 
   $app.innerHTML = `
     <div class="row" style="margin-bottom:14px">
-      <a class="btn ghost grow" href="/index.html">← Home</a>
+      <a class="btn ghost grow" href="/index.html">⬅️ Home</a>
       <button class="btn ghost grow" data-a="rules">📖 Ablauf</button>
     </div>
     <header>
@@ -397,7 +382,8 @@ function renderRules(){
         <li>Mit „Beginnen“ startet die erste Übung.</li>
         <li>Vor jeder Übung gibt es ${PREP_SEC} Sekunden Vorbereitung, dann läuft die Haltezeit.</li>
         <li>Bei Übungen mit zwei Seiten gibt es dazwischen ${SWITCH_SEC} Sekunden zum Wechseln.</li>
-        <li>Der Timer lässt sich nicht pausieren. Ist er abgelaufen, kannst du ihn neu starten.</li>
+        <li>Der Timer lässt sich nicht pausieren, aber jederzeit zurücksetzen. Dann beginnt er wieder mit ${PREP_SEC} Sekunden Vorbereitung.</li>
+        <li>Während einer Übung bleibt das Display an.</li>
       </ul>
       <div class="sec"></div>
       <h3>✅ Fortschritt</h3>
@@ -414,28 +400,28 @@ function renderRules(){
 function renderPlay(){
   const ex = LIST[S.current], isDone = S.done.includes(S.current);
   const dots = LIST.map((_, i) => `<i class="${S.done.includes(i) ? "d" : ""} ${i === S.current ? "c" : ""}"></i>`).join("");
-  const dur = ex.sides ? `2 × ${ex.sec} s (je Seite)` : `${ex.sec} s`;
+  const finishing = isFinishing();
+  const nextLabel = finishing
+    ? (isDone ? "🏁 Beenden" : "🏁 Erledigt &amp; beenden")
+    : (isDone ? "Weiter →" : "✓ Erledigt &amp; weiter");
   $app.innerHTML = `
-    <button class="back" data-a="menu">← Übersicht</button>
+    <div class="topnav"><button class="btn ghost navbtn" data-a="menu">📋 Zur Übersicht</button></div>
     <div class="progress">${dots}</div>
     <div class="head">
       <div class="muted">Übung ${S.current + 1} von ${N}</div>
       <div class="big">${esc(ex.name)}</div>
-      <div style="margin-top:6px">
-        <span class="tag">${esc(ex.area)}</span><span class="tag">⏱ ${esc(dur)}</span>${isDone ? '<span class="tag" style="color:var(--ok)">✓ erledigt</span>' : ""}
-      </div>
     </div>
     <div class="card figure">${figureSVG(ex.pose)}</div>
     <div class="card timer">
       <div class="phase" id="phase"></div>
       <div class="time" id="time">0:00</div>
       <div class="tbar" id="tbarWrap"><div id="tbar"></div></div>
-      <button class="btn block" id="restartBtn" data-a="restart" hidden>↻ Timer neu starten</button>
+      <button class="btn ghost block" id="restartBtn" data-a="restart">↻ Timer zurücksetzen</button>
     </div>
     <div class="card rules"><h3>So geht’s</h3><p>${esc(ex.text)}</p></div>
     <div class="bottom"><div class="inner">
       <button class="btn ghost" data-a="prev" ${S.current === 0 ? "disabled" : ""}>← Zurück</button>
-      <button class="btn ok" id="nextBtn" data-a="next">${isDone ? "Weiter →" : "✓ Erledigt &amp; weiter"}</button>
+      <button class="btn ok" id="nextBtn" data-a="next">${nextLabel}</button>
     </div></div>`;
   barEl = document.getElementById("tbar");
   timeEl = document.getElementById("time");
@@ -456,13 +442,13 @@ document.addEventListener("click", e => {
     case "open": openExercise(i, true); break;
     case "rules": S.screen = "rules"; render(); break;
     case "menu": toMenu(); break;
-    case "restart": setupTimer(true); render(); break;
+    case "restart": setupTimer(true); render(); break;   /* jederzeit: startet wieder mit der Vorbereitungszeit */
     case "prev": if(S.current > 0) openExercise(S.current - 1, true); break;
     case "next": nextExercise(); break;
     case "reset":
       if(resetArmed){
         clearTimeout(resetT); resetArmed = false;
-        S.done = []; S.current = 0; save(); renderHome(); toast("Fortschritt zurückgesetzt");
+        S.done = []; S.current = 0; save(); renderHome(); toast("Fortschritt zurückgesetzt", "info");
       }else{
         resetArmed = true; el.textContent = "Sicher? Nochmal tippen";
         resetT = setTimeout(() => { resetArmed = false; el.textContent = "Heutigen Fortschritt zurücksetzen"; }, 4000);

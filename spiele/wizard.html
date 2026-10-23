@@ -35,6 +35,7 @@
     color:var(--text);font-size:16px;padding:14px;outline:none;transition:border .2s}
   input[type=text]:focus{border-color:var(--a2)}
   button{font:inherit;color:inherit;border:0;cursor:pointer}
+  a{color:inherit;text-decoration:none}
   .btn{display:inline-block;text-align:center;background:var(--grad);color:#fff;font-weight:700;border-radius:14px;padding:14px 18px;font-size:16px;
     transition:transform .1s,opacity .2s}
   .btn:active{transform:scale(.97)}
@@ -68,7 +69,7 @@
   .stepper{display:flex;align-items:center;gap:8px;flex:none}
   .stepper .val{font-size:22px;font-weight:800;min-width:28px;text-align:center;font-variant-numeric:tabular-nums}
   .bottom{position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(env(safe-area-inset-bottom) + 14px);
-    background:linear-gradient(to top,var(--bg) 60%,transparent);}
+    background:linear-gradient(to top,var(--bg) 60%,transparent);z-index:10}
   .bottom .inner{max-width:480px;margin:0 auto}
   .hint{color:var(--muted);font-size:12px;text-align:center;margin-top:10px}
   .warnbox{background:rgba(255,176,32,.1);border:1px solid var(--warn);color:var(--warn);
@@ -86,10 +87,6 @@
   .progress i{width:14px;height:5px;border-radius:9px;background:var(--line);transition:background .2s}
   .progress i.d{background:var(--grad)}
   .progress i.c{background:var(--warn)}
-  .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 10px);transform:translateX(-50%);
-    background:var(--card2);border:1px solid var(--line);padding:8px 14px;border-radius:99px;font-size:12px;
-    color:var(--muted);opacity:0;transition:opacity .3s;pointer-events:none;z-index:9}
-  .toast.show{opacity:1}
   .rank{display:flex;align-items:center;gap:10px;padding:12px;background:var(--card2);border:1px solid var(--line);
     border-radius:16px;margin-top:8px;animation:pop .3s ease both;text-align:left}
   .rank.r1{border-color:#ffd24a;box-shadow:0 0 24px rgba(255,210,74,.18)}
@@ -126,24 +123,26 @@
   tr.tot td{font-weight:900;font-size:15px;border-bottom:0}
   .ok-t{color:var(--ok)} .bad-t{color:var(--a1)}
 </style>
+<!-- Toasts aus extra Datei (muss im selben Ordner liegen) -->
+<script src="/toast.js"></script>
 </head>
 <body>
-<div id="toast" class="toast"></div>
 <div id="app"></div>
 
 <script>
 /* ---------- Speicher: nur lokal (localStorage) ---------- */
 const KEY = "wizard_data_v1";
-let storageMode = "none";
+let storageOk = true;
 
 function save(){
-  const data = JSON.stringify({ p: S.players, h: S.house ? 1 : 0, g: S.game });
-  try{ localStorage.setItem(KEY, data); storageMode = "local"; }
-  catch(e){ storageMode = "memory"; }
+  try{
+    localStorage.setItem(KEY, JSON.stringify({ p: S.players, h: S.house ? 1 : 0, g: S.game }));
+    storageOk = true;
+  }catch(e){ storageOk = false; }
 }
 function load(){
   let raw = null;
-  try{ raw = localStorage.getItem(KEY); if(raw) storageMode = "local"; }catch(e){}
+  try{ raw = localStorage.getItem(KEY); }catch(e){}
   if(!raw) return;
   try{
     const d = JSON.parse(raw);
@@ -162,11 +161,7 @@ load();
 const $app = document.getElementById("app");
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const totalRounds = n => Math.floor(60 / n);
-function toast(msg){
-  const t = document.getElementById("toast");
-  t.textContent = msg; t.classList.add("show");
-  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 1800);
-}
+/* toast(text, typ) kommt aus toast.js */
 const pts = (b, w) => b === w ? 20 + 10 * w : -10 * Math.abs(b - w);
 const sgn = v => v > 0 ? "+" + v : String(v);
 const names = () => S.game.names;
@@ -186,7 +181,7 @@ const sum = a => a.reduce((x, y) => x + y, 0);
 /* ---------- Spiel starten ---------- */
 function newGame(){
   const n = S.players.length;
-  if(n < 3) return toast("Mindestens 3 Spieler nötig");
+  if(n < 3) return toast("Mindestens 3 Spieler nötig", "info");
   const R = totalRounds(n);
   S.game = {
     names: S.players.slice(),
@@ -230,11 +225,9 @@ function renderHome(){
       ${locked ? "" : `<button class="icon" data-a="del" data-i="${i}" aria-label="Entfernen">✕</button>`}
     </div>`).join("") : `<div class="empty">Noch keine Spieler. Füge 3 bis 6 hinzu.</div>`;
 
-  const storageText = {
-    local:"💾 Alles ist nur lokal auf diesem Gerät gespeichert",
-    memory:"⚠️ Speichern nicht möglich (nur bis zum Neuladen)",
-    none:"💾 Wird nur lokal auf diesem Gerät gespeichert"
-  }[storageMode];
+  const storageText = storageOk
+    ? "💾 Wird nur lokal auf diesem Gerät gespeichert"
+    : "⚠️ Speichern nicht möglich (nur bis zum Neuladen)";
 
   let gameCard = "";
   if(active){
@@ -256,6 +249,7 @@ function renderHome(){
 
   $app.innerHTML = `
     <div class="row" style="margin-bottom:14px">
+      <a class="btn ghost grow" href="/index.html">⬅️ Home</a>
       <button class="btn ghost grow" data-a="rules">📖 Regeln &amp; Punkte</button>
     </div>
     <header>
@@ -278,7 +272,7 @@ function renderHome(){
     <div class="card">
       <h2>Einstellungen</h2>
       <div class="setting">
-        <div><b>Hausregel</b><span>Warnung, wenn Summe der Ansagen = Stichzahl</span></div>
+        <div><b>Hausregel</b><span>Warnung und Sperre, wenn Summe der Ansagen = Stichzahl</span></div>
         <button class="switch ${S.house ? "on" : ""}" data-a="house" role="switch" aria-checked="${S.house}" aria-label="Hausregel"></button>
       </div>
     </div>
@@ -333,7 +327,7 @@ function renderRules(){
       <p>Beispiele: Ansage 2, Stiche 2 = +40 · Ansage 0, Stiche 0 = +20 · Ansage 3, Stiche 1 = −20.</p>
 
       <h3>🏠 Hausregel</h3>
-      <p>Viele spielen so, dass die Summe aller Ansagen nicht der Stichzahl entsprechen darf (der Geber muss anpassen). Die App warnt dann, sperrt aber nichts.</p>
+      <p>Viele spielen so, dass die Summe aller Ansagen nicht der Stichzahl entsprechen darf (der Geber muss anpassen). Ist die Hausregel an, warnt die App und lässt dich erst weiter, wenn die Summe der Ansagen nicht mehr der Stichzahl entspricht.</p>
 
       <h3>💡 Tipps</h3>
       <ul>
@@ -415,8 +409,9 @@ function renderRound(){
   let info = "", ready = true;
   if(bidPhase){
     const s = sum(r.bids);
-    if(S.house && s === cards) info = `<div class="warnbox">⚠️ Summe der Ansagen (${s}) = Stichzahl. Laut Hausregel muss der Geber (${esc(g.names[dealer])}) anders ansagen.</div>`;
-    info += `<div class="sumline"><span>Summe Ansagen</span><b>${s} / ${cards}</b></div>`;
+    ready = !(S.house && s === cards);
+    if(!ready) info = `<div class="warnbox">⚠️ Summe der Ansagen (${s}) = Stichzahl. Laut Hausregel muss der Geber (${esc(g.names[dealer])}) anders ansagen. Weiter ist erst möglich, wenn die Summe nicht mehr der Stichzahl entspricht.</div>`;
+    info += `<div class="sumline"><span>Summe Ansagen</span><b class="${ready ? "" : "bad-t"}">${s} / ${cards}</b></div>`;
   }else{
     const s = sum(r.won);
     ready = s === cards;
@@ -433,7 +428,7 @@ function renderRound(){
     </div>
     <div class="bottom"><div class="inner">
       ${bidPhase
-        ? `<button class="btn block" data-a="tostiche" ${ri > 0 ? 'style="margin-bottom:10px"' : ""}>Weiter zu den Stichen</button>
+        ? `<button class="btn block" data-a="tostiche" ${ready ? "" : "disabled"} ${ri > 0 ? 'style="margin-bottom:10px"' : ""}>Weiter zu den Stichen</button>
            ${ri > 0 ? `<button class="btn ghost block" data-a="prevround">← Vorherige Runde</button>` : ""}`
         : `<button class="btn block" data-a="evaluate" ${ready ? "" : "disabled"} style="margin-bottom:10px">Runde auswerten</button>
            <button class="btn ghost block" data-a="backtobid">← Ansagen ändern</button>`}
@@ -498,7 +493,7 @@ function renderFinal(){
       <div class="logo" style="font-size:28px">ENDERGEBNIS</div>
       <div class="sub">${g.rounds.length} Runden gespielt</div>
     </header>
-    <div class="okbox" style="text-align:center">🧙 ${winners.length > 1 ? "Gewinner" : "Gewinner"}: <b>${winners.map(esc).join(", ")}</b> mit ${max} Punkten</div>
+    <div class="okbox" style="text-align:center">🧙 Gewinner: <b>${winners.map(esc).join(", ")}</b> mit ${max} Punkten</div>
     <div class="card">${rankRows(tot)}</div>
     <div class="bottom"><div class="inner">
       <button class="btn block" data-a="table" data-from="final" style="margin-bottom:10px">📊 Punktetafel ansehen</button>
@@ -515,16 +510,26 @@ document.addEventListener("submit", e => {
   const inp = document.getElementById("nameInput");
   const name = inp.value.trim();
   if(!name) return;
-  if(S.players.some(p => p.toLowerCase() === name.toLowerCase())) return toast("Name gibt es schon");
-  if(S.players.length >= 6) return toast("Maximal 6 Spieler");
+  if(S.players.some(p => p.toLowerCase() === name.toLowerCase())) return toast("Name gibt es schon", "info");
+  if(S.players.length >= 6) return toast("Maximal 6 Spieler", "info");
   S.players.push(name);
   save(); renderHome();
   document.getElementById("nameInput").focus();
 });
 
-function sureBtn(el, label){
-  if(el.dataset.sure) return true;
-  el.dataset.sure = 1; el.textContent = label || "Sicher? Nochmal tippen";
+/* Sicherheitsabfrage: zweiter Tipp bestätigt, nach 4 Sekunden springt der Button zurück */
+let armedEl = null, armedT = null, armedTxt = "";
+function disarm(){
+  clearTimeout(armedT);
+  if(armedEl && armedEl.isConnected) armedEl.textContent = armedTxt;
+  armedEl = null;
+}
+function confirmTap(el){
+  if(armedEl === el){ clearTimeout(armedT); armedEl = null; return true; }
+  disarm();
+  armedEl = el; armedTxt = el.textContent;
+  el.textContent = "Sicher? Nochmal tippen";
+  armedT = setTimeout(disarm, 4000);
   return false;
 }
 
@@ -533,6 +538,7 @@ document.addEventListener("click", e => {
   if(!el) return;
   const a = el.dataset.a;
   const i = Number(el.dataset.i), r = Number(el.dataset.r);
+  if(a !== "abort" && a !== "clearall") disarm();
   switch(a){
     case "del": S.players.splice(i, 1); save(); renderHome(); break;
     case "house": S.house = !S.house; save(); renderHome(); break;
@@ -542,10 +548,10 @@ document.addEventListener("click", e => {
     case "resume": S.screen = "round"; render(); window.scrollTo(0, 0); break;
     case "gotofinal": S.screen = "final"; render(); break;
     case "abort":
-      if(sureBtn(el)){ S.game = null; save(); renderHome(); toast("Spiel abgebrochen"); }
+      if(confirmTap(el)){ S.game = null; save(); renderHome(); toast("Spiel abgebrochen", "info"); }
       break;
     case "clearall":
-      if(sureBtn(el)){ S.players = []; S.game = null; save(); renderHome(); toast("Alles gelöscht"); }
+      if(confirmTap(el)){ S.players = []; S.game = null; save(); renderHome(); toast("Alles gelöscht", "info"); }
       break;
     case "stp": {
       const g = S.game, rd = g.rounds[r], max = r + 1, f = el.dataset.f, d = Number(el.dataset.d);
@@ -554,7 +560,7 @@ document.addEventListener("click", e => {
     }
     case "tostiche": {
       const rd = S.game.rounds[S.game.cur];
-      if(S.house && sum(rd.bids) === S.game.cur + 1) toast("Hinweis: Summe = Stichzahl (Hausregel)");
+      if(S.house && sum(rd.bids) === S.game.cur + 1) return toast("Hausregel: Summe der Ansagen darf nicht der Stichzahl entsprechen", "info");
       S.game.phase = "won"; save(); render(); window.scrollTo(0, 0); break;
     }
     case "backtobid": S.game.phase = "bid"; save(); render(); break;
@@ -566,7 +572,7 @@ document.addEventListener("click", e => {
       S.screen = "round"; save(); render(); window.scrollTo(0, 0); break;
     case "evaluate": {
       const rd = S.game.rounds[S.game.cur];
-      if(sum(rd.won) !== S.game.cur + 1) return toast("Stiche müssen der Kartenzahl entsprechen");
+      if(sum(rd.won) !== S.game.cur + 1) return toast("Stiche müssen der Kartenzahl entsprechen", "info");
       rd.done = true; S.game.phase = "summary"; save(); render(); window.scrollTo(0, 0); break;
     }
     case "backtowon": S.game.rounds[S.game.cur].done = false; S.game.phase = "won"; save(); render(); break;
@@ -580,6 +586,8 @@ document.addEventListener("click", e => {
   }
 });
 
+/* Beim Laden einmal speichern, damit der Speicherstatus sofort stimmt */
+save();
 render();
 </script>
 </body>

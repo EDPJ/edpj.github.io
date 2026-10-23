@@ -2,395 +2,477 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#2f7fb8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0b0d12">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Tägliches Dehnprogramm – Rücken & Beine</title>
+<title>Dehnen</title>
 <style>
   :root{
-    --bg1:#e8f3ef; --bg2:#d7e8f5; --card:#fff; --ink:#1d2b36; --muted:#5d6f7c;
-    --accent:#2f7fb8; --accent-d:#256694; --ok:#2e9e6b; --warn:#e5534b; --prep:#e08a1e; --line:#dbe5ec;
+    --bg:#0b0d12; --card:#151922; --card2:#1c2230; --line:#262d3d;
+    --text:#f2f4f8; --muted:#8c95a8;
+    --a1:#ff3b6b; --a2:#7c5cff; --ok:#2ee59d; --warn:#ffb020;
+    --grad:linear-gradient(135deg,var(--a1),var(--a2));
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html{-webkit-text-size-adjust:100%}
-  body{
-    margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:var(--ink);
-    background:linear-gradient(160deg,var(--bg1),var(--bg2)); background-attachment:fixed; min-height:100vh; min-height:100dvh;
-    padding:calc(12px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) calc(110px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));
-    touch-action:manipulation; overscroll-behavior-y:contain;
-  }
-  button{font-family:inherit;touch-action:manipulation;-webkit-user-select:none;user-select:none}
-  .wrap{max-width:560px;margin:0 auto}
-  header{margin-bottom:12px}
-  h1{font-size:1.3rem;margin:0 0 2px}
-  .sub{color:var(--muted);font-size:.85rem}
-
-  .progress{background:#fff;border-radius:16px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:12px}
-  .ptop{display:flex;justify-content:space-between;gap:8px;font-weight:600;font-size:.95rem}
-  .bar{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:8px}
-  .bar>div{height:100%;width:100%;background:var(--ok);transform-origin:left center;transition:transform .5s ease;will-change:transform}
-  .steps{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}
-  .step{border:2px solid var(--line);background:#fff;border-radius:12px;min-height:46px;font-weight:700;cursor:pointer;color:var(--ink);font-size:1rem}
-  .step:active{transform:scale(.96)}
-  .step.done{background:var(--ok);border-color:var(--ok);color:#fff}
-  .step.current{border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,127,184,.28)}
-
-  .card{background:var(--card);border-radius:20px;box-shadow:0 4px 18px rgba(0,0,0,.09);overflow:hidden;margin-bottom:12px}
-  .figure{background:linear-gradient(180deg,#f6fbff,#eaf3fa);padding:10px 10px 0}
-  .figure svg{width:100%;height:auto;max-height:34vh;display:block}
-  .body{padding:14px 16px 18px}
-  .tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
-  .tag{font-size:.75rem;background:#e7f1f8;color:var(--accent-d);padding:4px 10px;border-radius:99px;font-weight:600}
-  .tag.done{background:#dff3ea;color:#1f7a50}
-  h2{margin:4px 0 10px;font-size:1.25rem;line-height:1.25}
-  .desc{line-height:1.55;color:#33434f;margin:14px 0 0;font-size:1rem}
-
-  .timer{border:1px solid var(--line);border-radius:16px;padding:12px;text-align:center;background:#fafcfe}
-  .phase{font-size:.95rem;color:var(--muted);font-weight:600;min-height:1.3em}
-  .time{font-size:4rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1;margin:2px 0 8px}
-  .time.switch{color:var(--warn)}
-  .time.prep{color:var(--prep)}
-  /* Fortschrittsbalken des Timers: per transform animiert (läuft flüssig, ohne Ruckeln) */
-  .tbar{height:10px;background:var(--line);border-radius:99px;overflow:hidden}
-  .tbar>div{height:100%;width:100%;background:var(--accent);transform-origin:left center;transform:scaleX(0);will-change:transform}
-  .tbar.prep>div{background:var(--prep)}
-  .row{display:flex;justify-content:center;margin-top:12px}
-  .row[hidden]{display:none}
-
-  button.btn{border:none;border-radius:14px;min-height:54px;padding:12px 18px;font-size:1.05rem;font-weight:700;cursor:pointer;background:var(--accent);color:#fff;transition:background .15s,transform .1s}
-  button.btn:active{transform:scale(.97)}
-  button.btn.sec{background:#e7eef3;color:var(--ink)}
-  button.btn.ok{background:var(--ok)}
-  button.btn.wide{width:100%}
-  button.btn.big{width:100%;min-height:60px;font-size:1.2rem;background:var(--ok)}
-  button.btn:disabled{opacity:.4}
-  button.btn.pulse{animation:pulse 1.2s infinite}
-  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(46,158,107,.55)}100%{box-shadow:0 0 0 14px rgba(46,158,107,0)}}
-
-  .bottom{
-    position:fixed;left:0;right:0;bottom:0;z-index:10;
-    background:rgba(255,255,255,.94);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-    border-top:1px solid var(--line);
-    padding:10px calc(12px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));
-  }
-  .bottom .in{max-width:560px;margin:0 auto;display:flex;gap:10px}
-  .bottom .btn.sec{flex:1}
-  .bottom .btn.ok{flex:2}
-
-  .finish{background:linear-gradient(135deg,#2e9e6b,#2f7fb8);color:#fff;border-radius:18px;padding:16px;text-align:center;margin-bottom:12px;box-shadow:0 4px 18px rgba(0,0,0,.12)}
-  .finish h2{margin:0 0 4px}
-  footer{text-align:center;color:var(--muted);font-size:.8rem;margin:14px 0 6px;line-height:1.5}
-  footer button{background:none;border:none;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:.85rem;padding:10px}
-
-  svg .limb{fill:none;stroke:#34506b;stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
-  svg .backl{fill:none;stroke:#9db3c6;stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
-  svg .headc{fill:#34506b}
-  svg .hl{fill:rgba(229,83,75,.38)}
-  svg .floor{stroke:#b9c9d6;stroke-width:4;stroke-linecap:round}
-  svg .wall{stroke:#a9b8c4;stroke-width:10;stroke-linecap:round}
-  svg text{font-size:12px;fill:#6b7d8a;font-family:system-ui,sans-serif}
-
-  @media (max-width:360px){ .time{font-size:3.4rem} h2{font-size:1.15rem} }
-  @media (orientation:landscape) and (max-height:500px){ .figure svg{max-height:55vh} }
-  @media (prefers-reduced-motion:reduce){ .bar>div{transition:none} }
+  html,body{margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  body{min-height:100vh;
+    background:
+      radial-gradient(600px 300px at 10% -5%,rgba(255,59,107,.18),transparent 60%),
+      radial-gradient(600px 300px at 100% 0%,rgba(124,92,255,.2),transparent 60%),
+      var(--bg);
+    background-attachment:fixed;touch-action:manipulation;overscroll-behavior-y:contain}
+  #app{max-width:480px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 120px);}
+  header{text-align:center;margin-bottom:14px}
+  .logo{font-size:34px;font-weight:900;letter-spacing:4px;
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .sub{color:var(--muted);font-size:13px;margin-top:2px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .card h2{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:700}
+  .row{display:flex;align-items:center;gap:10px}
+  .grow{flex:1;min-width:0}
+  button{font:inherit;color:inherit;border:0;cursor:pointer;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+  a{color:inherit;text-decoration:none}
+  .btn{display:inline-block;text-align:center;background:var(--grad);color:#fff;font-weight:700;border-radius:14px;padding:14px 18px;font-size:16px;
+    transition:transform .1s,opacity .2s}
+  .btn:active{transform:scale(.97)}
+  .btn.block{width:100%}
+  .btn.ghost{background:var(--card2);border:1px solid var(--line);color:var(--text)}
+  .btn.ok{background:linear-gradient(135deg,#1fcf8a,#16a0c9)}
+  .btn:disabled{opacity:.4}
+  .btn.pulse{animation:pulse 1.2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(46,229,157,.55)}100%{box-shadow:0 0 0 14px rgba(46,229,157,0)}}
+  .player{display:flex;align-items:center;gap:10px;padding:10px;background:var(--card2);border:1px solid var(--line);
+    border-radius:14px;margin-top:8px;cursor:pointer;text-align:left;width:100%;animation:pop .25s ease}
+  .player:active{transform:scale(.98)}
+  .player.cur{border-color:var(--a2)}
+  @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .avatar{width:36px;height:36px;border-radius:50%;background:var(--grad);display:grid;place-items:center;
+    font-weight:800;flex:none}
+  .avatar.done{background:linear-gradient(135deg,#1fcf8a,#16a0c9)}
+  .pname{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .parea{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pts{font-weight:800;min-width:44px;text-align:right;font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted)}
+  .bottom{position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(env(safe-area-inset-bottom) + 14px);
+    background:linear-gradient(to top,var(--bg) 60%,transparent);z-index:10}
+  .bottom .inner{max-width:480px;margin:0 auto;display:flex;gap:10px}
+  .bottom .inner .ghost{flex:1}
+  .bottom .inner .ok{flex:2}
+  .hint{color:var(--muted);font-size:12px;text-align:center;margin-top:10px}
+  .empty{color:var(--muted);text-align:center;font-size:14px;padding:10px 0 2px}
+  .warnbox{background:rgba(255,176,32,.1);border:1px solid var(--warn);color:var(--warn);
+    border-radius:14px;padding:10px 12px;font-size:13px;margin-bottom:14px;line-height:1.4}
+  .okbox{background:rgba(46,229,157,.1);border:1px solid var(--ok);color:var(--ok);
+    border-radius:14px;padding:12px;font-size:14px;margin-bottom:14px;line-height:1.4;text-align:center;font-weight:600}
+  .muted{color:var(--muted)}
+  .big{font-size:26px;font-weight:800}
+  .back{display:flex;align-items:center;gap:8px;background:none;color:var(--muted);font-size:15px;padding:6px 0;margin-bottom:10px}
+  .tag{display:inline-block;padding:6px 12px;border-radius:99px;background:var(--card2);border:1px solid var(--line);
+    font-size:13px;color:var(--warn);font-weight:600;margin:3px}
+  .progress{display:flex;gap:6px;justify-content:center;margin-bottom:14px}
+  .progress i{width:22px;height:5px;border-radius:9px;background:var(--line);transition:background .2s}
+  .progress i.d{background:var(--ok)}
+  .progress i.c{background:var(--grad)}
+  .head{text-align:center;margin-bottom:14px}
+  .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 10px);transform:translateX(-50%);
+    background:var(--card2);border:1px solid var(--line);padding:8px 14px;border-radius:99px;font-size:12px;
+    color:var(--muted);opacity:0;transition:opacity .3s;pointer-events:none;z-index:20}
+  .toast.show{opacity:1}
+  .bar{height:8px;background:var(--card2);border:1px solid var(--line);border-radius:99px;overflow:hidden}
+  .bar>div{height:100%;width:100%;background:var(--ok);transform-origin:left center;transform:scaleX(0);will-change:transform;transition:transform .5s ease}
+  .figure{padding:10px 10px 0;text-align:center}
+  .figure svg{width:100%;height:auto;max-height:32vh;display:block}
+  .timer{text-align:center}
+  .phase{font-size:14px;color:var(--muted);font-weight:600;min-height:1.3em}
+  .time{font-size:68px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.1;margin:2px 0 10px}
+  .time.prep{color:var(--warn)}
+  .time.switch{color:var(--a1)}
+  .tbar{height:10px;background:var(--card2);border:1px solid var(--line);border-radius:99px;overflow:hidden}
+  .tbar>div{height:100%;width:100%;background:var(--grad);transform-origin:left center;transform:scaleX(0);will-change:transform}
+  .tbar.prep>div{background:var(--warn)}
+  .timer .btn{margin-top:14px}
+  .timer .btn[hidden]{display:none}
+  .rules h3{margin:0 0 6px;font-size:16px}
+  .rules p,.rules li{color:#c9d0de;font-size:14px;line-height:1.55;margin:0 0 6px}
+  .rules ul{padding-left:20px;margin:0 0 6px}
+  .rules .sec{margin-top:16px}
+  svg .limb{fill:none;stroke:#f2f4f8;stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
+  svg .backl{fill:none;stroke:#6b7490;stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
+  svg .headc{fill:#f2f4f8}
+  svg .hl{fill:rgba(255,59,107,.45)}
+  svg .floor{stroke:#3a4256;stroke-width:4;stroke-linecap:round}
+  svg .wall{stroke:#3a4256;stroke-width:10;stroke-linecap:round}
+  svg text{font-size:12px;fill:#8c95a8;font-family:system-ui,sans-serif}
+  @media (max-width:360px){.time{font-size:54px}.big{font-size:22px}}
+  @media (orientation:landscape) and (max-height:500px){.figure svg{max-height:50vh}}
+  @media (prefers-reduced-motion:reduce){.bar>div{transition:none}}
 </style>
+<!-- Übungen aus extra Datei (muss im selben Ordner liegen) -->
+<script src="uebungen.js"></script>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1>🧘 Tägliches Dehnprogramm</h1>
-    <div class="sub" id="dateInfo"></div>
-  </header>
+<div id="toast" class="toast"></div>
+<div id="app"></div>
 
-  <div class="progress">
-    <div class="ptop"><span id="progText"></span><span class="sub">Nur Rücken &amp; Beine</span></div>
-    <div class="bar"><div id="progBar"></div></div>
-    <div class="steps" id="steps"></div>
-  </div>
-
-  <div id="finish"></div>
-  <div class="card" id="card"></div>
-
-  <footer>
-    Ein neuer Tag beginnt um 3:00 Uhr nachts – dann wird der Fortschritt des Vortags zurückgesetzt.<br>
-    <button id="resetBtn">Heutigen Fortschritt zurücksetzen</button>
-  </footer>
-</div>
-
-<div class="bottom"><div class="in" id="bottomNav"></div></div>
-
-<!-- Übungen & Einstellungen liegen in einer eigenen Datei -->
-<script src="uebungen.js"></script>
 <script>
-const N = EX.length;
-const PREP_SEC = EINSTELLUNGEN.prepSec;
-const SWITCH_SEC = EINSTELLUNGEN.switchSec;
+/* ---------- Übungen laden (aus uebungen.js) ---------- */
+const EX_OK = (typeof EX !== "undefined") && Array.isArray(EX) && EX.length > 0;
+const LIST = EX_OK ? EX : [];
+const CFG = (typeof EINSTELLUNGEN !== "undefined" && EINSTELLUNGEN) ? EINSTELLUNGEN : {};
+const PREP_SEC = Number(CFG.prepSec) || 5;
+const SWITCH_SEC = Number(CFG.switchSec) || 5;
+const N = LIST.length;
 
-/* Erst nach Klick auf „Beginnen“ startet der Timer – nicht beim Laden der Seite */
-let sessionStarted = false;
-
+/* ---------- Helfer ---------- */
+const $app = document.getElementById("app");
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad = n => String(n).padStart(2,"0");
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 1800);
+}
 function figureSVG(p){
   let s = '<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" role="img">';
   if(p.wall) s += '<line class="wall" x1="274" y1="15" x2="274" y2="180"/>';
   if(!p.nofloor) s += '<line class="floor" x1="12" y1="184" x2="308" y2="184"/>';
-  (p.hl||[]).forEach(h=> s += `<circle class="hl" cx="${h[0]}" cy="${h[1]}" r="18"/>`);
-  (p.back||[]).forEach(d=> s += `<path class="backl" d="${d}"/>`);
-  p.paths.forEach(d=> s += `<path class="limb" d="${d}"/>`);
+  (p.hl||[]).forEach(h => s += `<circle class="hl" cx="${h[0]}" cy="${h[1]}" r="18"/>`);
+  (p.back||[]).forEach(d => s += `<path class="backl" d="${d}"/>`);
+  p.paths.forEach(d => s += `<path class="limb" d="${d}"/>`);
   s += `<circle class="headc" cx="${p.head[0]}" cy="${p.head[1]}" r="13"/>`;
-  if(p.note) s += `<text x="10" y="18">${p.note}</text>`;
+  if(p.note) s += `<text x="10" y="18">${esc(p.note)}</text>`;
   return s + '</svg>';
 }
 
-/* ---------- Tageslogik: Tag wechselt um 3:00 Uhr ---------- */
-const KEY='dehnprogramm_state_v1';
-const pad = n => String(n).padStart(2,'0');
+/* ---------- Speicher: lokal, Tag wechselt um 3:00 Uhr ---------- */
+const KEY = "dehnen_data";
+let storageMode = "none";
 function logicalDay(){
   const d = new Date(Date.now() - 3*3600*1000);
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 }
-function loadJSON(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } }
-function saveJSON(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
-function freshState(){ return { day:logicalDay(), done:[], current:0, saved:Date.now() }; }
-
-let state = loadJSON(KEY);
-if(!state || state.day !== logicalDay() || !Array.isArray(state.done)) state = freshState();
-if(typeof state.current!=='number' || state.current<0 || state.current>=N) state.current = 0;
-saveJSON(KEY, state);
-
-function persist(){ state.saved = Date.now(); saveJSON(KEY, state); }
+const S = { day:logicalDay(), done:[], current:0, screen:"home" };
+function save(){
+  try{
+    localStorage.setItem(KEY, JSON.stringify({d:S.day, done:S.done, c:S.current}));
+    storageMode = "local";
+  }catch(e){ storageMode = "memory"; }
+}
+function load(){
+  let raw = null;
+  try{ raw = localStorage.getItem(KEY); if(raw) storageMode = "local"; }catch(e){}
+  if(!raw) return;
+  try{
+    const d = JSON.parse(raw);
+    if(d.d !== logicalDay()) return;
+    S.done = (Array.isArray(d.done) ? d.done : []).map(Number).filter(i => i>=0 && i<N);
+    S.current = (Number(d.c) >= 0 && Number(d.c) < N) ? Number(d.c) : 0;
+  }catch(e){}
+}
+load();
 
 function ensureDay(){
-  if(state.day !== logicalDay()){
-    state = freshState(); persist();
-    sessionStarted = false;
-    setupTimer(false); render();
+  if(S.day !== logicalDay()){
+    S.day = logicalDay(); S.done = []; S.current = 0; S.screen = "home";
+    setupTimer(false); save(); render();
   }
 }
 setInterval(ensureDay, 15000);
-document.addEventListener('visibilitychange', ()=>{
+document.addEventListener("visibilitychange", () => {
   if(!document.hidden){ ensureDay(); if(T.running){ requestWake(); tick(); } }
 });
 
-/* ---------- Ton, Vibration, Bildschirm wach halten ---------- */
-let audioCtx=null;
+/* ---------- Ton, Vibration, Bildschirm wach ---------- */
+let audioCtx = null;
 function unlockAudio(){
   try{
-    audioCtx = audioCtx || new (window.AudioContext||window.webkitAudioContext)();
-    if(audioCtx.state==='suspended') audioCtx.resume();
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === "suspended") audioCtx.resume();
   }catch(e){}
 }
-['pointerdown','touchstart','click'].forEach(ev=>document.addEventListener(ev, unlockAudio, {passive:true}));
+["pointerdown","touchstart","click"].forEach(ev => document.addEventListener(ev, unlockAudio, {passive:true}));
 function beep(freq=880, dur=0.18){
   try{
     if(!audioCtx) return;
-    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
-    o.frequency.value=freq; o.connect(g); g.connect(audioCtx.destination);
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.frequency.value = freq; o.connect(g); g.connect(audioCtx.destination);
     g.gain.setValueAtTime(0.25, audioCtx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime+dur);
-    o.start(); o.stop(audioCtx.currentTime+dur);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+    o.start(); o.stop(audioCtx.currentTime + dur);
   }catch(e){}
 }
 function buzz(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
-
-let wakeLock=null;
+let wakeLock = null;
 async function requestWake(){
-  try{ if('wakeLock' in navigator && !wakeLock){
-    wakeLock = await navigator.wakeLock.request('screen');
-    wakeLock.addEventListener('release', ()=>{ wakeLock=null; });
+  try{ if("wakeLock" in navigator && !wakeLock){
+    wakeLock = await navigator.wakeLock.request("screen");
+    wakeLock.addEventListener("release", () => { wakeLock = null; });
   } }catch(e){}
 }
-function releaseWake(){ try{ if(wakeLock){ wakeLock.release(); wakeLock=null; } }catch(e){} }
+function releaseWake(){ try{ if(wakeLock){ wakeLock.release(); wakeLock = null; } }catch(e){} }
 
-/* ---------- Timer ----------
-   Zeitbasis: performance.now() (Startzeitpunkt + verstrichene Zeit).
-   Der Balken wird per requestAnimationFrame mit ~60 fps bewegt (transform: scaleX),
-   dadurch läuft er völlig flüssig. Ein zusätzliches Intervall hält Ton und
-   Phasenwechsel auch im Hintergrund am Laufen. */
+/* ---------- Timer (performance.now + requestAnimationFrame = flüssiger Balken) ---------- */
 const T = { phases:[], total:0, i:0, phaseRem:0, running:false, started:false, finished:false,
             startTs:0, lastSec:null, raf:null, iv:null };
-let barEl=null, timeEl=null, phaseEl=null, lastTimeTxt='', lastPhaseTxt='';
+let barEl = null, timeEl = null, phaseEl = null, lastTimeTxt = "", lastPhaseTxt = "";
 
+function stopLoops(){
+  clearInterval(T.iv); T.iv = null;
+  if(T.raf){ cancelAnimationFrame(T.raf); T.raf = null; }
+}
 function setupTimer(autostart){
   stopLoops();
-  const ex = EX[state.current];
-  T.phases = [{l:'Gleich geht’s los – Position einnehmen', t:PREP_SEC, type:'prep'}];
+  T.running = false; T.started = false; T.finished = false; T.lastSec = null;
+  const ex = LIST[S.current];
+  if(!ex){ T.phases = []; T.i = 0; T.phaseRem = 0; return; }
+  T.phases = [{l:"Gleich geht’s los – Position einnehmen", t:PREP_SEC, type:"prep"}];
   if(ex.sides){
-    T.phases.push({l:'Seite 1', t:ex.sec, type:'hold', side:1});
-    T.phases.push({l:'Seite wechseln …', t:SWITCH_SEC, type:'switch'});
-    T.phases.push({l:'Seite 2', t:ex.sec, type:'hold', side:2});
-  } else {
-    T.phases.push({l:'Halten & ruhig atmen', t:ex.sec, type:'hold'});
+    T.phases.push({l:"Seite 1", t:ex.sec, type:"hold", side:1});
+    T.phases.push({l:"Seite wechseln …", t:SWITCH_SEC, type:"switch"});
+    T.phases.push({l:"Seite 2", t:ex.sec, type:"hold", side:2});
+  }else{
+    T.phases.push({l:"Halten & ruhig atmen", t:ex.sec, type:"hold"});
   }
-  T.total = T.phases.reduce((a,p)=>a+p.t,0);
-  T.i=0; T.phaseRem=T.phases[0].t; T.running=false; T.started=false; T.finished=false; T.lastSec=null;
+  T.total = T.phases.reduce((a,p) => a + p.t, 0);
+  T.i = 0; T.phaseRem = T.phases[0].t;
   if(autostart) runTimer();
 }
-function stopLoops(){
-  clearInterval(T.iv); T.iv=null;
-  if(T.raf){ cancelAnimationFrame(T.raf); T.raf=null; }
-}
 function runTimer(){
-  T.running=true; T.started=true; T.lastSec=null;
-  T.startTs=performance.now();
+  T.running = true; T.started = true; T.lastSec = null;
+  T.startTs = performance.now();
   stopLoops();
-  T.iv=setInterval(tick,250);
-  const frame=()=>{ tick(); if(T.running) T.raf=requestAnimationFrame(frame); };
-  T.raf=requestAnimationFrame(frame);
+  T.iv = setInterval(tick, 250);
+  const frame = () => { tick(); if(T.running) T.raf = requestAnimationFrame(frame); };
+  T.raf = requestAnimationFrame(frame);
   requestWake();
 }
 function tick(){
   if(!T.running) return;
-  const el=(performance.now()-T.startTs)/1000;
-
-  if(el>=T.total){
-    T.finished=true; T.running=false; T.i=T.phases.length-1; T.phaseRem=0;
+  const el = (performance.now() - T.startTs) / 1000;
+  if(el >= T.total){
+    T.finished = true; T.running = false; T.i = T.phases.length - 1; T.phaseRem = 0;
     stopLoops(); beep(1200,.5); buzz([300,100,300]); releaseWake();
     updateTimerUI(); return;
   }
-
-  let acc=0, idx=0;
-  while(idx<T.phases.length-1 && el>=acc+T.phases[idx].t){ acc+=T.phases[idx].t; idx++; }
-
-  let changed=false;
-  if(idx!==T.i){
-    T.i=idx; T.lastSec=null; changed=true;
-    const hold=T.phases[idx].type==='hold';
-    beep(hold?988:660); buzz(hold?[120]:[60,60,60]);
+  let acc = 0, idx = 0;
+  while(idx < T.phases.length - 1 && el >= acc + T.phases[idx].t){ acc += T.phases[idx].t; idx++; }
+  let changed = false;
+  if(idx !== T.i){
+    T.i = idx; T.lastSec = null; changed = true;
+    const hold = T.phases[idx].type === "hold";
+    beep(hold ? 988 : 660); buzz(hold ? [120] : [60,60,60]);
   }
-  const ph=T.phases[idx], inPhase=el-acc;
-  T.phaseRem=ph.t-inPhase;
-
-  const secs=Math.ceil(T.phaseRem);
-  if(secs!==T.lastSec){
-    T.lastSec=secs; changed=true;
-    if(ph.type!=='hold' && secs>=1 && secs<=3) beep(520,.08);
+  const ph = T.phases[idx], inPhase = el - acc;
+  T.phaseRem = ph.t - inPhase;
+  const secs = Math.ceil(T.phaseRem);
+  if(secs !== T.lastSec){
+    T.lastSec = secs; changed = true;
+    if(ph.type !== "hold" && secs >= 1 && secs <= 3) beep(520,.08);
   }
   if(changed) updateTimerUI();
-  if(barEl) barEl.style.transform='scaleX('+Math.min(1,inPhase/ph.t).toFixed(4)+')';
+  if(barEl) barEl.style.transform = "scaleX(" + Math.min(1, inPhase / ph.t).toFixed(4) + ")";
 }
-function startOrRestart(){
-  unlockAudio();
-  sessionStarted=true;
-  setupTimer(true); render();
-}
-
 function updateTimerUI(){
-  if(!timeEl) return;
-  const ph=T.phases[T.i];
-  const secs=Math.ceil(Math.max(0,T.phaseRem));
-  const txt=`${Math.floor(secs/60)}:${pad(secs%60)}`;
-  if(txt!==lastTimeTxt){ timeEl.textContent=txt; lastTimeTxt=txt; }
-
-  const showPrep = ph.type==='prep' && !T.finished;
-  timeEl.classList.toggle('switch', ph.type==='switch' && !T.finished);
-  timeEl.classList.toggle('prep', showPrep);
-  document.getElementById('tbarWrap').classList.toggle('prep', showPrep);
-
+  if(!timeEl || S.screen !== "play" || !T.phases.length) return;
+  const ph = T.phases[T.i];
+  const secs = Math.ceil(Math.max(0, T.phaseRem));
+  const txt = `${Math.floor(secs/60)}:${pad(secs%60)}`;
+  if(txt !== lastTimeTxt){ timeEl.textContent = txt; lastTimeTxt = txt; }
+  const prep = ph.type === "prep" && !T.finished;
+  timeEl.classList.toggle("prep", prep);
+  timeEl.classList.toggle("switch", ph.type === "switch" && !T.finished);
+  document.getElementById("tbarWrap").classList.toggle("prep", prep);
   let label;
-  if(T.finished) label='✅ Zeit abgelaufen – gut gemacht!';
-  else if(!T.started) label = sessionStarted ? 'Bereit' : 'Bereit zum Start';
-  else label = ph.l + (ph.type==='hold' && ph.side ? ` (${ph.side}/2)` : '');
-  if(label!==lastPhaseTxt){ phaseEl.textContent=label; lastPhaseTxt=label; }
-
-  if(T.finished) barEl.style.transform='scaleX(1)';
-  else if(!T.started) barEl.style.transform='scaleX(0)';
-
-  /* Button nur sichtbar, wenn der Timer nicht läuft (und die Session begonnen wurde) */
-  document.getElementById('timerRow').hidden = T.running || !sessionStarted;
-  document.getElementById('restartBtn').textContent = T.finished ? '↻ Timer neu starten' : '▶ Timer starten';
-  const nb=document.getElementById('nextBtn'); if(nb) nb.classList.toggle('pulse', T.finished);
+  if(T.finished) label = "✅ Zeit abgelaufen – gut gemacht!";
+  else if(!T.started) label = "Bereit";
+  else label = ph.l + (ph.type === "hold" && ph.side ? ` (${ph.side}/2)` : "");
+  if(label !== lastPhaseTxt){ phaseEl.textContent = label; lastPhaseTxt = label; }
+  if(T.finished) barEl.style.transform = "scaleX(1)";
+  else if(!T.started) barEl.style.transform = "scaleX(0)";
+  /* Neustart-Button nur, wenn der Timer NICHT läuft */
+  const rb = document.getElementById("restartBtn");
+  rb.hidden = T.running;
+  const nb = document.getElementById("nextBtn");
+  if(nb) nb.classList.toggle("pulse", T.finished);
 }
 
-/* ---------- Navigation / Fortschritt ---------- */
-function goTo(i){
-  unlockAudio();
-  state.current=Math.max(0,Math.min(N-1,i)); persist();
-  setupTimer(sessionStarted); render();
-  window.scrollTo({top:0,behavior:'smooth'});
+/* ---------- Navigation ---------- */
+function openExercise(i, autostart){
+  if(!N) return;
+  S.current = Math.max(0, Math.min(N-1, i));
+  S.screen = "play";
+  save(); setupTimer(autostart); render();
+  window.scrollTo(0, 0);
 }
-function markDoneAndNext(){
-  unlockAudio();
-  const wasDone = state.done.includes(state.current);
-  if(!wasDone) state.done.push(state.current);
-  if(!wasDone && state.done.length===N){
-    persist(); setupTimer(false); render();
-    window.scrollTo({top:0,behavior:'smooth'});
+function toMenu(){
+  setupTimer(false); releaseWake();
+  S.screen = "home"; render(); window.scrollTo(0, 0);
+}
+function nextExercise(){
+  const wasDone = S.done.includes(S.current);
+  if(!wasDone) S.done.push(S.current);
+  if(!wasDone && S.done.length === N){
+    save(); toMenu(); toast("🎉 Alle Übungen geschafft!");
     return;
   }
-  let next=-1;
-  for(let k=1;k<=N;k++){ const j=(state.current+k)%N; if(!state.done.includes(j)){ next=j; break; } }
-  if(next<0) next=(state.current+1)%N;
-  state.current=next;
-  persist(); setupTimer(true); render();
-  window.scrollTo({top:0,behavior:'smooth'});
+  let next = -1;
+  for(let k = 1; k <= N; k++){ const j = (S.current + k) % N; if(!S.done.includes(j)){ next = j; break; } }
+  if(next < 0) next = (S.current + 1) % N;
+  openExercise(next, true);
+}
+function startButtonAction(){
+  if(!N) return;
+  if(S.done.length >= N) return openExercise(0, true);
+  let i = S.done.includes(S.current) ? LIST.findIndex((_, k) => !S.done.includes(k)) : S.current;
+  openExercise(i < 0 ? 0 : i, true);
 }
 
-/* ---------- Rendering ---------- */
+/* ---------- Render ---------- */
 function render(){
-  const ex=EX[state.current], isDone=state.done.includes(state.current);
-  document.getElementById('dateInfo').textContent =
-    'Heute: ' + new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  if(S.screen === "rules") return renderRules();
+  if(S.screen === "play" && N) return renderPlay();
+  S.screen = "home";
+  renderHome();
+}
 
-  document.getElementById('progText').textContent = `${state.done.length} von ${N} erledigt`;
-  document.getElementById('progBar').style.transform = `scaleX(${state.done.length/N})`;
+function renderHome(){
+  timeEl = barEl = phaseEl = null;
+  const dt = new Date().toLocaleDateString("de-DE", {weekday:"long", day:"numeric", month:"long"});
+  const rows = N ? LIST.map((e, i) => `
+    <button class="player ${i === S.current && !S.done.includes(i) ? "cur" : ""}" data-a="open" data-i="${i}">
+      <div class="avatar ${S.done.includes(i) ? "done" : ""}">${S.done.includes(i) ? "✓" : i + 1}</div>
+      <div class="grow"><div class="pname">${esc(e.name)}</div><div class="parea">${esc(e.area)}</div></div>
+      <div class="pts">${e.sides ? "2×" + e.sec : e.sec} s</div>
+    </button>`).join("") : `<div class="empty">Keine Übungen geladen.</div>`;
+  const storageText = {
+    local:"💾 Fortschritt ist nur lokal auf diesem Gerät gespeichert",
+    memory:"⚠️ Speichern nicht möglich (nur bis zum Neuladen)",
+    none:"💾 Wird nur lokal auf diesem Gerät gespeichert"
+  }[storageMode];
+  const allDone = N > 0 && S.done.length >= N;
+  const label = allDone ? "Noch einmal durchgehen" : (S.done.length > 0 ? "Weitermachen" : "Beginnen");
 
-  document.getElementById('steps').innerHTML = EX.map((e,i)=>
-    `<button class="step ${state.done.includes(i)?'done':''} ${i===state.current?'current':''}" onclick="goTo(${i})" aria-label="Übung ${i+1}: ${e.name}">${state.done.includes(i)?'✓':i+1}</button>`
-  ).join('');
+  $app.innerHTML = `
+    <div class="row" style="margin-bottom:14px">
+      <a class="btn ghost grow" href="index.html">← Home</a>
+      <button class="btn ghost grow" data-a="rules">📖 Ablauf</button>
+    </div>
+    <header>
+      <div class="logo">DEHNEN</div>
+      <div class="sub">Rücken &amp; Beine · ${esc(dt)}</div>
+    </header>
+    ${EX_OK ? "" : `<div class="warnbox">⚠️ Die Datei <b>uebungen.js</b> wurde nicht gefunden oder ist leer. Lege sie in denselben Ordner wie diese Seite.</div>`}
+    ${allDone ? `<div class="okbox">🎉 Geschafft! Morgen ab 3:00 Uhr geht es von vorn los.</div>` : ""}
+    <div class="card">
+      <h2>Heute (${S.done.length} von ${N})</h2>
+      <div class="bar"><div id="homeBar" style="transform:scaleX(${N ? S.done.length / N : 0})"></div></div>
+      ${rows}
+    </div>
+    <div class="card">
+      <h2>Speicher</h2>
+      <button class="btn ghost block" data-a="reset">Heutigen Fortschritt zurücksetzen</button>
+      <div class="hint">${storageText}</div>
+    </div>
+    <div class="bottom"><div class="inner">
+      <button class="btn block" data-a="start" ${N ? "" : "disabled"}>▶ ${label}</button>
+    </div></div>`;
+}
 
-  document.getElementById('finish').innerHTML = state.done.length===N
-    ? `<div class="finish"><h2>🎉 Geschafft!</h2><div>Das Dehnprogramm für heute ist komplett. Morgen ab 3:00 Uhr geht es wieder von vorn los.</div></div>` : '';
+function renderRules(){
+  timeEl = barEl = phaseEl = null;
+  $app.innerHTML = `
+    <button class="back" data-a="menu">← Zurück</button>
+    <header>
+      <div class="logo" style="font-size:28px">ABLAUF</div>
+      <div class="sub">So funktioniert das Dehnprogramm</div>
+    </header>
+    <div class="card rules">
+      <h3>🎯 Idee</h3>
+      <p>Jeden Tag ${N} Übungen für Rücken und Beine – eine nach der anderen, geführt vom Timer.</p>
+      <div class="sec"></div>
+      <h3>⏱️ Timer</h3>
+      <ul>
+        <li>Mit „Beginnen“ startet die erste Übung.</li>
+        <li>Vor jeder Übung gibt es ${PREP_SEC} Sekunden Vorbereitung, dann läuft die Haltezeit.</li>
+        <li>Bei Übungen mit zwei Seiten gibt es dazwischen ${SWITCH_SEC} Sekunden zum Wechseln.</li>
+        <li>Der Timer lässt sich nicht pausieren. Ist er abgelaufen, kannst du ihn neu starten.</li>
+      </ul>
+      <div class="sec"></div>
+      <h3>✅ Fortschritt</h3>
+      <ul>
+        <li>„Erledigt &amp; weiter“ speichert die Übung und startet die nächste.</li>
+        <li>Über die Übersicht kannst du jede Übung direkt antippen.</li>
+        <li>Ein neuer Tag beginnt um 3:00 Uhr nachts. Dann wird der Fortschritt vom Vortag ungültig.</li>
+      </ul>
+    </div>
+    <button class="btn block" data-a="menu">Verstanden</button>`;
+  window.scrollTo(0, 0);
+}
 
+function renderPlay(){
+  const ex = LIST[S.current], isDone = S.done.includes(S.current);
+  const dots = LIST.map((_, i) => `<i class="${S.done.includes(i) ? "d" : ""} ${i === S.current ? "c" : ""}"></i>`).join("");
   const dur = ex.sides ? `2 × ${ex.sec} s (je Seite)` : `${ex.sec} s`;
-  document.getElementById('card').innerHTML = `
-    <div class="figure">${figureSVG(ex.pose)}</div>
-    <div class="body">
-      <div class="tags">
-        <span class="tag">Übung ${state.current+1} / ${N}</span>
-        <span class="tag">${ex.area}</span>
-        <span class="tag">⏱ ${dur}</span>
-        ${isDone?'<span class="tag done">✓ erledigt</span>':''}
+  $app.innerHTML = `
+    <button class="back" data-a="menu">← Übersicht</button>
+    <div class="progress">${dots}</div>
+    <div class="head">
+      <div class="muted">Übung ${S.current + 1} von ${N}</div>
+      <div class="big">${esc(ex.name)}</div>
+      <div style="margin-top:6px">
+        <span class="tag">${esc(ex.area)}</span><span class="tag">⏱ ${esc(dur)}</span>${isDone ? '<span class="tag" style="color:var(--ok)">✓ erledigt</span>' : ""}
       </div>
-      <h2>${ex.name}</h2>
-      <div class="timer">
-        <div class="phase" id="phase"></div>
-        <div class="time" id="time">0:00</div>
-        <div class="tbar" id="tbarWrap"><div id="tbar"></div></div>
-        <div class="row" id="timerRow" hidden>
-          <button class="btn wide" id="restartBtn" onclick="startOrRestart()">↻ Timer neu starten</button>
-        </div>
-      </div>
-      <p class="desc">${ex.text}</p>
-    </div>`;
-
-  barEl=document.getElementById('tbar'); timeEl=document.getElementById('time'); phaseEl=document.getElementById('phase');
-  lastTimeTxt=''; lastPhaseTxt='';
-
-  /* Untere Leiste: vor dem Start nur „Beginnen“, danach die Navigation */
-  document.getElementById('bottomNav').innerHTML = sessionStarted
-    ? `<button class="btn sec" onclick="goTo(${state.current-1})" ${state.current===0?'disabled':''}>← Zurück</button>
-       <button class="btn ok" id="nextBtn" onclick="markDoneAndNext()">${isDone?'Weiter →':'✓ Erledigt & weiter'}</button>`
-    : `<button class="btn big" onclick="startOrRestart()">▶ ${state.done.length>0?'Weitermachen':'Beginnen'}</button>`;
-
+    </div>
+    <div class="card figure">${figureSVG(ex.pose)}</div>
+    <div class="card timer">
+      <div class="phase" id="phase"></div>
+      <div class="time" id="time">0:00</div>
+      <div class="tbar" id="tbarWrap"><div id="tbar"></div></div>
+      <button class="btn block" id="restartBtn" data-a="restart" hidden>↻ Timer neu starten</button>
+    </div>
+    <div class="card rules"><h3>So geht’s</h3><p>${esc(ex.text)}</p></div>
+    <div class="bottom"><div class="inner">
+      <button class="btn ghost" data-a="prev" ${S.current === 0 ? "disabled" : ""}>← Zurück</button>
+      <button class="btn ok" id="nextBtn" data-a="next">${isDone ? "Weiter →" : "✓ Erledigt &amp; weiter"}</button>
+    </div></div>`;
+  barEl = document.getElementById("tbar");
+  timeEl = document.getElementById("time");
+  phaseEl = document.getElementById("phase");
+  lastTimeTxt = ""; lastPhaseTxt = "";
   updateTimerUI();
   if(T.running) tick();
 }
 
-let resetArmed=false, resetTimeout=null;
-document.getElementById('resetBtn').onclick = function(){
-  if(!resetArmed){
-    resetArmed=true; this.textContent='Wirklich zurücksetzen? Nochmal tippen.';
-    resetTimeout=setTimeout(()=>{resetArmed=false; this.textContent='Heutigen Fortschritt zurücksetzen';},4000);
-  } else {
-    clearTimeout(resetTimeout); resetArmed=false; this.textContent='Heutigen Fortschritt zurücksetzen';
-    state=freshState(); persist();
-    sessionStarted=false;
-    setupTimer(false); render();
+/* ---------- Events ---------- */
+let resetArmed = false, resetT = null;
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-a]");
+  if(!el) return;
+  const a = el.dataset.a, i = Number(el.dataset.i);
+  switch(a){
+    case "start": startButtonAction(); break;
+    case "open": openExercise(i, true); break;
+    case "rules": S.screen = "rules"; render(); break;
+    case "menu": toMenu(); break;
+    case "restart": setupTimer(true); render(); break;
+    case "prev": if(S.current > 0) openExercise(S.current - 1, true); break;
+    case "next": nextExercise(); break;
+    case "reset":
+      if(resetArmed){
+        clearTimeout(resetT); resetArmed = false;
+        S.done = []; S.current = 0; save(); renderHome(); toast("Fortschritt zurückgesetzt");
+      }else{
+        resetArmed = true; el.textContent = "Sicher? Nochmal tippen";
+        resetT = setTimeout(() => { resetArmed = false; el.textContent = "Heutigen Fortschritt zurücksetzen"; }, 4000);
+      }
+      break;
   }
-};
+});
 
-/* Beim Laden wird NICHTS gestartet – erst der Klick auf „Beginnen“ startet die erste Übung */
+/* Beim Laden startet nichts – erst „Beginnen“ startet die erste Übung */
+save();
 setupTimer(false);
 render();
 </script>

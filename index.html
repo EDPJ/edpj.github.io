@@ -82,8 +82,6 @@ const ITEMS = [
     url: "tools/dehnen.html",
     tag: ""
   }
-  // Beispiel für später:
-  // { kat:"tools", titel:"Timer", text:"Ein einfacher Countdown.", icon:"⏱️", url:"timer.html", tag:"Tool" }
 ];
 
 const KATEGORIEN = [
@@ -108,7 +106,7 @@ function card(it, i){
 document.getElementById("app").innerHTML = `
   <header>
     <div class="logo">SPIELE & TOOLS</div>
-    <div class="sub">Wähle eine Kategorie und leg los</div>
+    <div class="sub">Wähle ein Tool oder Spiel und leg los</div>
   </header>
   ${KATEGORIEN.map(k => {
     const list = ITEMS.filter(it => it.kat === k.id);

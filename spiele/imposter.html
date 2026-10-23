@@ -70,7 +70,7 @@
   .stepper{display:flex;align-items:center;gap:10px}
   .stepper .val{font-size:22px;font-weight:800;min-width:26px;text-align:center}
   .bottom{position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(env(safe-area-inset-bottom) + 14px);
-    background:linear-gradient(to top,var(--bg) 60%,transparent);}
+    background:linear-gradient(to top,var(--bg) 60%,transparent);z-index:10}
   .bottom .inner{max-width:480px;margin:0 auto}
   .hint{color:var(--muted);font-size:12px;text-align:center;margin-top:10px}
   .warnbox{background:rgba(255,176,32,.1);border:1px solid var(--warn);color:var(--warn);
@@ -101,10 +101,6 @@
   .chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}
   .chip{padding:6px 12px;border-radius:99px;background:var(--card2);border:1px solid var(--line);font-size:13px}
   .chip.first{border-color:var(--a2);color:#fff;font-weight:700}
-  .toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 10px);transform:translateX(-50%);
-    background:var(--card2);border:1px solid var(--line);padding:8px 14px;border-radius:99px;font-size:12px;
-    color:var(--muted);opacity:0;transition:opacity .3s;pointer-events:none;z-index:9}
-  .toast.show{opacity:1}
   /* Ranking */
   .rank{display:flex;align-items:center;gap:10px;padding:12px;background:var(--card2);border:1px solid var(--line);
     border-radius:16px;margin-top:8px;animation:pop .3s ease both;text-align:left}
@@ -120,11 +116,12 @@
   .rules ul,.rules ol{padding-left:20px;margin:0 0 6px}
   .back{display:flex;align-items:center;gap:8px;background:none;color:var(--muted);font-size:15px;padding:6px 0;margin-bottom:10px}
 </style>
+<!-- Toasts aus extra Datei (muss im selben Ordner liegen) -->
+<script src="toast.js"></script>
 <!-- Wörter aus extra Datei (muss im selben Ordner liegen) -->
 <script src="imposter-woerter.js"></script>
 </head>
 <body>
-<div id="toast" class="toast"></div>
 <div id="app"></div>
 
 <script>
@@ -134,28 +131,22 @@ const WORD_LIST = WORDS_OK ? WORDS : [];
 
 /* ---------- Speicher: nur lokal (localStorage) ---------- */
 const KEY = "imposter_data";
-let storageMode = "none";
+let storageOk = true;
 
 function save(){
-  const data = JSON.stringify({
-    p: S.players.map(p => [p.name, p.points]),
-    h: S.hint ? 1 : 0,
-    i: S.imposters
-  });
   try{
-    localStorage.setItem(KEY, data);
-    storageMode = "local";
-  }catch(e){
-    storageMode = "memory";
-  }
+    localStorage.setItem(KEY, JSON.stringify({
+      p: S.players.map(p => [p.name, p.points]),
+      h: S.hint ? 1 : 0,
+      i: S.imposters
+    }));
+    storageOk = true;
+  }catch(e){ storageOk = false; }
 }
 
 function load(){
   let raw = null;
-  try{
-    raw = localStorage.getItem(KEY);
-    if(raw) storageMode = "local";
-  }catch(e){}
+  try{ raw = localStorage.getItem(KEY); }catch(e){}
   if(!raw) return;
   try{
     const d = JSON.parse(raw);
@@ -181,17 +172,13 @@ const $app = document.getElementById("app");
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const maxImp = () => Math.max(1, Math.floor((S.players.length - 1) / 2));
 const shuffle = a => { a = a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
-function toast(msg){
-  const t = document.getElementById("toast");
-  t.textContent = msg; t.classList.add("show");
-  clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 1800);
-}
+/* toast(text, typ) kommt aus toast.js */
 
 /* ---------- Spiel starten ---------- */
 function startGame(){
   const n = S.players.length;
-  if(!WORDS_OK) return toast("Wörterdatei fehlt");
-  if(n < 3) return toast("Mindestens 3 Spieler nötig");
+  if(!WORDS_OK) return toast("Wörterdatei fehlt", "info");
+  if(n < 3) return toast("Mindestens 3 Spieler nötig", "info");
   if(S.imposters > maxImp()) S.imposters = maxImp();
   const last = S.game ? S.game.word : null;
   let pick;
@@ -226,15 +213,13 @@ function renderHome(){
       <button class="icon" data-a="del" data-i="${i}" aria-label="Entfernen">✕</button>
     </div>`).join("") : `<div class="empty">Noch keine Spieler. Füge mindestens 3 hinzu.</div>`;
 
-  const storageText = {
-    local:"💾 Namen & Punkte sind nur lokal auf diesem Gerät gespeichert",
-    memory:"⚠️ Speichern nicht möglich (nur bis zum Neuladen)",
-    none:"💾 Wird nur lokal auf diesem Gerät gespeichert"
-  }[storageMode];
+  const storageText = storageOk
+    ? "💾 Wird nur lokal auf diesem Gerät gespeichert"
+    : "⚠️ Speichern nicht möglich (nur bis zum Neuladen)";
 
   $app.innerHTML = `
     <div class="row" style="margin-bottom:14px">
-      <a class="btn ghost grow" href="/index.html">← Home</a>
+      <a class="btn ghost grow" href="/index.html">⬅️ Home</a>
       <button class="btn ghost grow" data-a="rules">📖 Regeln</button>
     </div>
 
@@ -243,7 +228,7 @@ function renderHome(){
       <div class="sub">Wer kennt das Wort nicht?</div>
     </header>
 
-    ${WORDS_OK ? "" : `<div class="warnbox">⚠️ Die Datei <b>imposter-woerter.js</b> wurde nicht gefunden. Lege die Datei in denselben Ordner wie diese Seite.</div>`}
+    ${WORDS_OK ? "" : `<div class="warnbox">⚠️ Die Datei <b>imposter-woerter.js</b> wurde nicht gefunden oder ist leer. Lege sie in denselben Ordner wie diese Seite.</div>`}
 
     <div class="card">
       <h2>Spieler (${n})</h2>
@@ -457,29 +442,44 @@ document.addEventListener("submit", e => {
   const inp = document.getElementById("nameInput");
   const name = inp.value.trim();
   if(!name) return;
-  if(S.players.some(p => p.name.toLowerCase() === name.toLowerCase())) return toast("Name gibt es schon");
-  if(S.players.length >= 20) return toast("Maximal 20 Spieler");
+  if(S.players.some(p => p.name.toLowerCase() === name.toLowerCase())) return toast("Name gibt es schon", "info");
+  if(S.players.length >= 20) return toast("Maximal 20 Spieler", "info");
   S.players.push({name, points:0});
   save(); renderHome();
   document.getElementById("nameInput").focus();
 });
 
+/* Sicherheitsabfrage: zweiter Tipp bestätigt, nach 4 Sekunden springt der Button zurück */
+let armedEl = null, armedT = null, armedTxt = "";
+function disarm(){
+  clearTimeout(armedT);
+  if(armedEl && armedEl.isConnected) armedEl.textContent = armedTxt;
+  armedEl = null;
+}
+function confirmTap(el){
+  if(armedEl === el){ clearTimeout(armedT); armedEl = null; return true; }
+  disarm();
+  armedEl = el; armedTxt = el.textContent;
+  el.textContent = "Sicher? Nochmal tippen";
+  armedT = setTimeout(disarm, 4000);
+  return false;
+}
+
 document.addEventListener("click", e => {
   const el = e.target.closest("[data-a]");
   if(!el) return;
   const a = el.dataset.a, i = Number(el.dataset.i);
+  if(a !== "resetpts" && a !== "clearall") disarm();
   switch(a){
     case "del": S.players.splice(i, 1); if(S.imposters > maxImp()) S.imposters = maxImp(); save(); renderHome(); break;
     case "hint": S.hint = !S.hint; save(); renderHome(); break;
-    case "impinc": if(S.imposters < maxImp()){ S.imposters++; save(); } else toast("Mehr Spieler für mehr Imposter nötig"); renderHome(); break;
+    case "impinc": if(S.imposters < maxImp()){ S.imposters++; save(); } else toast("Mehr Spieler für mehr Imposter nötig", "info"); renderHome(); break;
     case "impdec": if(S.imposters > 1){ S.imposters--; save(); } renderHome(); break;
     case "resetpts":
-      if(el.dataset.sure){ S.players.forEach(p => p.points = 0); save(); renderHome(); toast("Punkte zurückgesetzt"); }
-      else{ el.dataset.sure = 1; el.textContent = "Sicher? Nochmal tippen"; }
+      if(confirmTap(el)){ S.players.forEach(p => p.points = 0); save(); renderHome(); toast("Punkte zurückgesetzt", "info"); }
       break;
     case "clearall":
-      if(el.dataset.sure){ S.players = []; S.imposters = 1; save(); renderHome(); toast("Alles gelöscht"); }
-      else{ el.dataset.sure = 1; el.textContent = "Sicher? Nochmal tippen"; }
+      if(confirmTap(el)){ S.players = []; S.imposters = 1; save(); renderHome(); toast("Alles gelöscht", "info"); }
       break;
     case "rules": S.screen = "rules"; render(); break;
     case "menu": S.screen = "home"; S.game = null; render(); window.scrollTo(0, 0); break;
@@ -508,6 +508,8 @@ function finish(){
   render();
 }
 
+/* Beim Laden einmal speichern, damit der Speicherstatus sofort stimmt */
+save();
 render();
 </script>
 </body>

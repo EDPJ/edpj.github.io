@@ -138,6 +138,41 @@ function figureSVG(p){
   return s + '</svg>';
 }
 
+/* ---------- Signalton + Vibration (je einmal) ---------- */
+let audioCtx = null;
+/* Audio muss durch einen Klick „freigeschaltet“ werden – wird beim Timerstart aufgerufen */
+function unlockAudio(){
+  try{
+    if(!audioCtx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(AC) audioCtx = new AC();
+    }
+    if(audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+  }catch(e){}
+}
+function beep(){
+  try{
+    if(!audioCtx) return;
+    if(audioCtx.state === "suspended") audioCtx.resume();
+    const t0 = audioCtx.currentTime;
+    const dur = 0.7;                       /* Länge des Pieptons in Sekunden */
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(0.5, t0 + 0.05);
+    gain.gain.setValueAtTime(0.5, t0 + dur - 0.2);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(t0); osc.stop(t0 + dur + 0.02);
+  }catch(e){}
+}
+function alertSignal(){
+  beep();
+  try{ if(navigator.vibrate) navigator.vibrate(500); }catch(e){}
+}
+
 /* ---------- Speicher: lokal, Tag wechselt um 3:00 Uhr ---------- */
 const KEY = "dehnen_data";
 let storageOk = true;
@@ -227,6 +262,7 @@ function setupTimer(autostart){
   if(autostart) runTimer();
 }
 function runTimer(){
+  unlockAudio();
   T.running = true; T.started = true; T.lastSec = null;
   T.startTs = performance.now();
   stopLoops();
@@ -240,12 +276,18 @@ function tick(){
   if(el >= T.total){
     T.finished = true; T.running = false; T.i = T.phases.length - 1; T.phaseRem = 0;
     stopLoops();
+    alertSignal();                       /* Ende der letzten Haltezeit */
     updateTimerUI(); return;
   }
   let acc = 0, idx = 0;
   while(idx < T.phases.length - 1 && el >= acc + T.phases[idx].t){ acc += T.phases[idx].t; idx++; }
   let changed = false;
-  if(idx !== T.i){ T.i = idx; T.lastSec = null; changed = true; }
+  if(idx !== T.i){
+    /* Signal, wenn eine Halte- oder Wechselphase abgelaufen ist (nicht nach der Vorbereitung) */
+    const prevType = T.phases[T.i].type;
+    if(prevType === "hold" || prevType === "switch") alertSignal();
+    T.i = idx; T.lastSec = null; changed = true;
+  }
   const ph = T.phases[idx], inPhase = el - acc;
   T.phaseRem = ph.t - inPhase;
   const secs = Math.ceil(T.phaseRem);
@@ -326,7 +368,6 @@ function render(){
 
 function renderHome(){
   timeEl = barEl = phaseEl = null;
-  const dt = new Date().toLocaleDateString("de-DE", {weekday:"long", day:"numeric", month:"long"});
   const rows = N ? LIST.map((e, i) => `
     <button class="player ${i === S.current && !S.done.includes(i) ? "cur" : ""}" data-a="open" data-i="${i}">
       <div class="avatar ${S.done.includes(i) ? "done" : ""}">${S.done.includes(i) ? "✓" : i + 1}</div>
@@ -346,7 +387,7 @@ function renderHome(){
     </div>
     <header>
       <div class="logo">DEHNEN</div>
-      <div class="sub">Rücken &amp; Beine · ${esc(dt)}</div>
+      <div class="sub">Dehnübungen für jeden Tag</div>
     </header>
     ${EX_OK ? "" : `<div class="warnbox">⚠️ Die Datei <b>dehnen-uebungen.js</b> wurde nicht gefunden oder ist leer. Lege sie in denselben Ordner wie diese Seite.</div>`}
     ${allDone ? `<div class="okbox">🎉 Geschafft! Morgen ab 3:00 Uhr geht es von vorn los.</div>` : ""}

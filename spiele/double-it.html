@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0b0d12">
+<title>Double It</title>
+<style>
+  :root{
+    --bg:#0b0d12; --card:#151922; --card2:#1c2230; --line:#262d3d;
+    --text:#f2f4f8; --muted:#8c95a8;
+    --a1:#ff3b6b; --a2:#7c5cff; --ok:#2ee59d; --warn:#ffb020;
+    --grad:linear-gradient(135deg,var(--a1),var(--a2));
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--bg);color:var(--text);overscroll-behavior:none;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+  body{min-height:100vh;
+    background:
+      radial-gradient(600px 300px at 10% -5%,rgba(255,59,107,.18),transparent 60%),
+      radial-gradient(600px 300px at 100% 0%,rgba(124,92,255,.2),transparent 60%),
+      var(--bg);
+    background-attachment:fixed;}
+  #app{max-width:480px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 30px);}
+  header{text-align:center;margin-bottom:14px}
+  .logo{font-size:34px;font-weight:900;letter-spacing:4px;
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .sub{color:var(--muted);font-size:13px;margin-top:2px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px;
+    box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .card h2{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:700}
+  .row{display:flex;align-items:center;gap:10px}
+  .grow{flex:1;min-width:0}
+  button{font:inherit;color:inherit;border:0;cursor:pointer}
+  a{color:inherit;text-decoration:none}
+  .btn{display:inline-block;text-align:center;background:var(--grad);color:#fff;font-weight:700;border-radius:14px;padding:14px 18px;font-size:16px;
+    transition:transform .1s,opacity .2s}
+  .btn:active{transform:scale(.97)}
+  .btn.block{width:100%}
+  .btn.big{padding:18px;font-size:19px;border-radius:16px;box-shadow:0 8px 24px rgba(255,59,107,.3)}
+  .btn.ghost{background:var(--card2);border:1px solid var(--line);color:var(--text)}
+  .btn.ok{background:linear-gradient(135deg,#1fcf8a,#16a0c9)}
+  .btn:disabled{opacity:.35;cursor:default}
+  .btn small{font-weight:500;opacity:.9;font-size:12px}
+  .hint{color:var(--muted);font-size:12px;text-align:center;margin-top:10px}
+  .warn{color:var(--warn)}
+  .empty{color:var(--muted);text-align:center;font-size:14px;padding:10px 0 2px}
+  .back{display:flex;align-items:center;gap:8px;background:none;color:var(--muted);font-size:15px;padding:6px 0;margin-bottom:10px}
+  .startbox{margin-bottom:14px}
+  .startbox .btn + .btn{margin-top:10px}
+
+  /* Startseite */
+  .recrow{display:flex;align-items:center;gap:12px;padding:10px;background:var(--card2);border:1px solid var(--line);
+    border-radius:14px;animation:fadeup .25s ease both}
+  .recrow .num{font-size:24px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1}
+  .recrow .lbl{font-size:10px;letter-spacing:1.5px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-top:3px}
+  .mini{min-width:42px;height:34px;padding:0 8px;border-radius:10px;display:grid;place-items:center;color:#fff;font-weight:900;font-size:14px;
+    text-shadow:0 1px 2px rgba(0,0,0,.35);flex:none}
+  .mini.none{background:var(--card);border:1px solid var(--line);color:var(--muted)}
+  @keyframes fadeup{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .lastbig{text-align:center;padding:4px 0 10px}
+  .lastbig .num{font-size:44px;font-weight:900;font-variant-numeric:tabular-nums;
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.1}
+  .lastbig .lbl{font-size:11px;letter-spacing:1.5px;color:var(--muted);font-weight:700;text-transform:uppercase}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+  .chip{padding:6px 12px;border-radius:99px;background:var(--card2);border:1px solid var(--line);font-size:13px}
+  .chip.gold{border-color:#ffd24a;color:#ffd24a;font-weight:700}
+
+  /* Regeln */
+  .rules h3{margin:18px 0 6px;font-size:16px}
+  .rules h3:first-child{margin-top:0}
+  .rules p,.rules li{color:#c9d0de;font-size:14px;line-height:1.55;margin:0 0 6px}
+  .rules ul,.rules ol{padding-left:20px;margin:0 0 6px}
+
+  /* Spiel */
+  .stats{display:flex;gap:10px;margin-bottom:12px}
+  .stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:8px 6px;text-align:center}
+  .stat small{display:block;font-size:10px;letter-spacing:1.5px;color:var(--muted);font-weight:700;text-transform:uppercase}
+  .stat b{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
+  .chain{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-bottom:12px;min-height:26px}
+  .cchip{min-width:30px;padding:3px 7px;border-radius:99px;text-align:center;font-size:11px;font-weight:800;
+    background:var(--card2);border:1px solid var(--line);color:var(--muted);transition:all .3s}
+  .cchip.on{color:#fff;border-color:transparent;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+
+  .board{position:relative;width:min(100%,max(260px,calc(100vh - 360px)));aspect-ratio:1;margin:0 auto 14px;
+    background:var(--card);border:1px solid var(--line);border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.35);
+    container-type:inline-size;touch-action:none;user-select:none;-webkit-user-select:none}
+  .cells{position:absolute;inset:var(--gap);display:grid;gap:var(--gap);
+    grid-template-columns:repeat(var(--n),1fr);grid-template-rows:repeat(var(--n),1fr)}
+  .cells i{background:var(--card2);border-radius:12%}
+  .layer{position:absolute;inset:var(--gap)}
+  .tile{position:absolute;left:0;top:0;z-index:2;
+    width:calc((100% - var(--gap) * (var(--n) - 1)) / var(--n));aspect-ratio:1;
+    transform:translate(calc(var(--c) * (100% + var(--gap))),calc(var(--r) * (100% + var(--gap))));
+    transition:transform .12s ease-out}
+  .tile.ghost{z-index:1}
+  .tile .in{width:100%;height:100%;border-radius:14%;display:grid;place-items:center;color:#fff;font-weight:900;
+    font-size:calc(100cqw / var(--n) * .42);text-shadow:0 2px 4px rgba(0,0,0,.35);
+    box-shadow:inset 0 -3px 0 rgba(0,0,0,.18),0 4px 10px rgba(0,0,0,.3)}
+  .tile .in.d3{font-size:calc(100cqw / var(--n) * .34)}
+  .tile .in.d4{font-size:calc(100cqw / var(--n) * .28)}
+  .tile .in.d5{font-size:calc(100cqw / var(--n) * .23)}
+  .tile .in.goal{box-shadow:0 0 22px rgba(255,210,74,.65),inset 0 0 0 2px rgba(255,255,255,.55)}
+  .tile .in.new{animation:appear .2s .1s backwards}
+  .tile .in.mer{animation:pop .22s .1s backwards}
+  @keyframes appear{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+  @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.22)}100%{transform:scale(1)}}
+
+  .overlay{position:absolute;inset:0;z-index:5;border-radius:20px;background:rgba(11,13,18,.84);
+    backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:none;flex-direction:column;
+    align-items:center;justify-content:center;gap:10px;padding:20px;text-align:center}
+  .overlay.show{display:flex;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .overlay .big{font-size:26px;font-weight:900}
+  .overlay p{margin:0 0 6px;color:#c9d0de;font-size:14px;line-height:1.45}
+  .overlay .btn{width:100%;max-width:260px}
+
+  #toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 30px);transform:translateX(-50%) translateY(20px);
+    background:var(--card2);border:1px solid var(--line);padding:10px 16px;border-radius:99px;font-size:14px;
+    opacity:0;pointer-events:none;transition:all .25s;z-index:100;white-space:nowrap}
+  #toast.show{opacity:1;transform:translateX(-50%)}
+  #err{display:none;position:fixed;left:0;right:0;top:0;z-index:200;background:#7a1020;color:#fff;font-size:12px;padding:8px 12px;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div id="err"></div>
+<div id="app"></div>
+<div id="toast"></div>
+
+<script>
+/* Fehler sichtbar machen */
+window.addEventListener("error", function(e){
+  var el = document.getElementById("err");
+  el.style.display = "block";
+  el.textContent = "Fehler: " + e.message + " (Zeile " + e.lineno + ")";
+});
+
+/* ---------- Konfiguration ---------- */
+const KEY = "doubleit_data";
+const TARGET = 2048;
+const N = 5;   // Feldgröße (fest 5 × 5)
+
+/* ---------- Helfer ---------- */
+const $app = document.getElementById("app");
+const $ = id => document.getElementById(id);
+const shuffle = a => { for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+let toastT = null;
+function toast(t){ const el=$("toast"); el.textContent=t; el.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove("show"),1800); }
+function colorOf(v){
+  const k = Math.round(Math.log2(v));
+  const h = (340 + (k-1) * 34) % 360;
+  return `linear-gradient(135deg,hsl(${h} 85% 62%),hsl(${(h+22)%360} 80% 48%))`;
+}
+const isPow2 = v => Number.isInteger(v) && v >= 2 && (v & (v-1)) === 0;
+
+/* ---------- Speicher: nur lokal (localStorage) ---------- */
+let storageOk = true;
+let D = { games:{}, best:{}, last:null };
+
+function load(){
+  let raw = null;
+  try{ raw = localStorage.getItem(KEY); }catch(e){}
+  if(!raw) return;
+  try{
+    const d = JSON.parse(raw);
+    D.games = d.games || {};
+    D.best = d.best || {};
+    D.last = d.last || null;
+  }catch(e){}
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(D)); storageOk = true; return; }catch(e){}
+  /* Speicher voll: älteste Zugschritte entfernen und noch einmal versuchen */
+  try{
+    for(const k in D.games){
+      const g = D.games[k];
+      if(g && Array.isArray(g.hist) && g.hist.length > 200) g.hist = g.hist.slice(Math.floor(g.hist.length / 2));
+    }
+    localStorage.setItem(KEY, JSON.stringify(D));
+    storageOk = true;
+  }catch(e){ storageOk = false; }
+}
+
+/* ---------- Spiellogik ---------- */
+let G = null;
+const fx = new Map();
+const S = { screen:"home", prev:"home", overlay:null };
+
+function makeGame(){
+  const g = { n:N, tiles:[], nextId:1, score:0, moves:0, hist:[], won:false, over:false, rec:false };
+  spawn(g); spawn(g);
+  return g;
+}
+function validGame(g){
+  if(!g || g.n !== N || !Array.isArray(g.tiles) || !Array.isArray(g.hist)) return false;
+  const seen = new Set();
+  for(const t of g.tiles){
+    if(!t || !isPow2(t.v) || !(t.r >= 0 && t.r < N) || !(t.c >= 0 && t.c < N)) return false;
+    const k = t.r * N + t.c;
+    if(seen.has(k)) return false;
+    seen.add(k);
+  }
+  return true;
+}
+function hasMoves(tiles, n){
+  if(tiles.length < n*n) return true;
+  const grid = Array.from({length:n}, () => Array(n).fill(0));
+  tiles.forEach(t => grid[t.r][t.c] = t.v);
+  for(let r=0;r<n;r++) for(let c=0;c<n;c++){
+    if(c+1<n && grid[r][c] === grid[r][c+1]) return true;
+    if(r+1<n && grid[r][c] === grid[r+1][c]) return true;
+  }
+  return false;
+}
+const highest = g => Math.max(0, ...g.tiles.map(t => t.v));
+
+/* Fairer Spawn: bevorzugt Positionen/Werte, nach denen noch ein Zug möglich ist */
+function spawn(g){
+  const n = g.n;
+  const occ = new Set(g.tiles.map(t => t.r*n + t.c));
+  const empty = [];
+  for(let i=0;i<n*n;i++) if(!occ.has(i)) empty.push(i);
+  if(!empty.length) return;
+  shuffle(empty);
+  const first = Math.random() < 0.9 ? 2 : 4;
+  const vals = [first, first === 2 ? 4 : 2];
+  let chosen = null;
+  outer:
+  for(const v of vals){
+    for(const cell of empty){
+      const t = { id:g.nextId, v, r:Math.floor(cell/n), c:cell%n };
+      g.tiles.push(t);
+      if(hasMoves(g.tiles, n)){ chosen = t; break outer; }
+      g.tiles.pop();
+    }
+  }
+  if(!chosen){
+    const cell = empty[0];
+    chosen = { id:g.nextId, v:first, r:Math.floor(cell/n), c:cell%n };
+    g.tiles.push(chosen);
+  }
+  g.nextId++;
+  fx.set(chosen.id, "new");
+}
+
+/* Zugverlauf: kompakt gespeichert, damit er unbegrenzt wachsen kann */
+function snapshot(){
+  const txt = G.tiles.map(t =>
+    t.id.toString(36) + "," + Math.round(Math.log2(t.v)).toString(36) + "," + (t.r * G.n + t.c).toString(36)
+  ).join(";");
+  return [txt, G.score, G.moves];
+}
+function decodeSnap(s, n){
+  if(Array.isArray(s)){
+    const tiles = s[0] ? s[0].split(";").map(p => {
+      const a = p.split(",");
+      const pos = parseInt(a[2], 36);
+      return { id:parseInt(a[0], 36), v:Math.pow(2, parseInt(a[1], 36)), r:Math.floor(pos / n), c:pos % n };
+    }) : [];
+    return { tiles, s:s[1], m:s[2] };
+  }
+  /* altes Format (frühere Versionen) */
+  return { tiles:s.t.map(a => ({ id:a[0], v:a[1], r:a[2], c:a[3] })), s:s.s, m:s.m };
+}
+
+function recordResult(g){
+  if(g.rec || g.moves === 0) return;
+  g.rec = true;
+  D.last = { s:g.score, b:highest(g), m:g.moves, n:g.n, t:Date.now() };
+}
+
+function move(dir){
+  if(S.screen !== "play" || !G || G.over || S.overlay) return;
+  const n = G.n;
+  const snap = snapshot();
+  const grid = Array.from({length:n}, () => Array(n).fill(null));
+  G.tiles.forEach(t => grid[t.r][t.c] = t);
+  let moved = false, gained = 0;
+  const ghosts = [], removed = new Set();
+
+  for(let k=0;k<n;k++){
+    const line = [];
+    for(let j=0;j<n;j++){
+      let r, c;
+      if(dir === "left"){ r=k; c=j; }
+      else if(dir === "right"){ r=k; c=n-1-j; }
+      else if(dir === "up"){ r=j; c=k; }
+      else { r=n-1-j; c=k; }
+      line.push([r,c]);
+    }
+    const list = line.map(([r,c]) => grid[r][c]).filter(Boolean);
+    let i = 0, p = 0;
+    while(i < list.length){
+      const t = list[i];
+      const [r,c] = line[p];
+      if(i+1 < list.length && list[i+1].v === t.v){
+        const o = list[i+1];
+        o.r = r; o.c = c; t.r = r; t.c = c;
+        t.v *= 2; gained += t.v;
+        ghosts.push(o); removed.add(o.id);
+        fx.set(t.id, "mer");
+        moved = true;
+        i += 2;
+      }else{
+        if(t.r !== r || t.c !== c){ t.r = r; t.c = c; moved = true; }
+        i++;
+      }
+      p++;
+    }
+  }
+  if(!moved) return;
+
+  G.tiles = G.tiles.filter(t => !removed.has(t.id));
+  G.hist.push(snap);
+  G.score += gained;
+  G.moves++;
+  G.rec = false;
+  spawn(G);
+
+  const hi = highest(G);
+  const b = D.best[n] || { s:0, b:0 };
+  if(G.score > b.s) b.s = G.score;
+  if(hi > b.b) b.b = hi;
+  D.best[n] = b;
+
+  if(!hasMoves(G.tiles, n)){
+    G.over = true; S.overlay = "over";
+    recordResult(G);
+  }else if(hi >= TARGET && !G.won){
+    G.won = true; S.overlay = "win";
+  }
+  save();
+  renderTiles(ghosts);
+}
+
+function undo(){
+  if(!G.hist.length){ toast("Kein Zug zum Zurücknehmen"); return; }
+  const s = decodeSnap(G.hist.pop(), G.n);
+  G.tiles = s.tiles;
+  G.score = s.s; G.moves = s.m;
+  G.over = false; G.rec = false; S.overlay = null;
+  fx.clear();
+  save();
+  renderTiles();
+}
+
+function startGame(fresh){
+  let g = D.games[N];
+  if(fresh || !validGame(g)){
+    if(g && validGame(g)) recordResult(g);
+    g = makeGame();
+    D.games[N] = g;
+  }
+  G = g;
+  S.overlay = G.over ? "over" : null;
+  fx.clear();
+  save();
+  S.screen = "play";
+  render();
+}
+
+/* ---------- Rendering ---------- */
+function render(){
+  if(S.screen === "home") return renderHome();
+  if(S.screen === "rules") return renderRules();
+  if(S.screen === "play") return renderPlay();
+}
+
+function miniTile(v){
+  return v ? `<div class="mini" style="background:${colorOf(v)}">${v}</div>` : `<div class="mini none">–</div>`;
+}
+
+function renderHome(){
+  const g = D.games[N];
+  const running = validGame(g) && g.moves > 0 && !g.over;
+  const b = D.best[N];
+
+  const rec = `<div class="recrow">
+      <div class="grow"><div class="num">${b ? b.s : 0}</div><div class="lbl">Punkte</div></div>
+      <div class="lbl" style="margin:0">Höchster Block</div>
+      ${miniTile(b ? b.b : 0)}
+    </div>`;
+
+  let last;
+  if(D.last){
+    const L = D.last;
+    const pr = L.s > 0 && D.best[L.n] && L.s >= D.best[L.n].s;
+    const d = new Date(L.t);
+    const when = d.toLocaleDateString("de-DE") + ", " + d.toLocaleTimeString("de-DE", {hour:"2-digit", minute:"2-digit"});
+    last = `<div class="lastbig"><div class="num">${L.s}</div><div class="lbl">Punkte</div></div>
+      <div class="chips">
+        ${pr ? '<span class="chip gold">🏆 Rekord</span>' : ""}
+        <span class="chip">Block ${L.b}</span>
+        <span class="chip">${L.m} Züge</span>
+        <span class="chip">${when}</span>
+      </div>`;
+  }else{
+    last = `<div class="empty">Noch kein Spiel beendet.</div>`;
+  }
+
+  const storageText = storageOk
+    ? "💾 Wird nur lokal auf diesem Gerät gespeichert"
+    : "⚠️ Speichern nicht möglich (nur bis zum Neuladen)";
+
+  const startHtml = running
+    ? `<button class="btn big block" data-a="cont">▶ Weiterspielen <small>(${g.score} Punkte)</small></button>
+       <button class="btn ghost block" data-a="newgame">Neues Spiel</button>`
+    : `<button class="btn big block" data-a="start">▶ Spiel starten</button>`;
+
+  $app.innerHTML = `
+    <div class="row" style="margin-bottom:14px">
+      <a class="btn ghost grow" href="/index.html">⬅️ Home</a>
+      <button class="btn ghost grow" data-a="rules">📖 Regeln</button>
+    </div>
+
+    <header>
+      <div class="logo">DOUBLE IT</div>
+      <div class="sub">2 · 4 · 8 · 16 · 32 … – wische und verdopple</div>
+    </header>
+
+    <div class="startbox">${startHtml}</div>
+
+    <div class="card">
+      <h2>🏆 Rekord</h2>
+      ${rec}
+    </div>
+
+    <div class="card">
+      <h2>Letztes Ergebnis</h2>
+      ${last}
+    </div>
+
+    <div class="card">
+      <h2>Speicher</h2>
+      <div class="row">
+        <button class="btn ghost grow" data-a="resetrec">Rekord zurücksetzen</button>
+        <button class="btn ghost grow" data-a="clearall">Alles löschen</button>
+      </div>
+      <div class="hint">${storageText}</div>
+    </div>
+  `;
+  window.scrollTo(0, 0);
+}
+
+function renderRules(){
+  $app.innerHTML = `
+    <button class="back" data-a="closerules">← Zurück</button>
+    <header>
+      <div class="logo" style="font-size:28px">REGELN</div>
+      <div class="sub">So funktioniert Double It</div>
+    </header>
+    <div class="card rules">
+      <h3>🎯 Ziel</h3>
+      <p>Baue den Block mit der <b>2048</b>. Danach kannst du weiterspielen und noch höhere Zahlen knacken. Ein neuer Rekord geht immer.</p>
+
+      <h3>👆 Wischen</h3>
+      <p>Wische in eine Richtung (am PC: Pfeiltasten oder WASD). Alle Blöcke rutschen bis zum Rand.</p>
+
+      <h3>✖️ Verdoppeln</h3>
+      <p>Treffen zwei gleiche Blöcke aufeinander, werden sie zu einem Block mit dem <b>doppelten Wert</b>:</p>
+      <ul>
+        <li>2 + 2 → <b>4</b></li>
+        <li>4 + 4 → <b>8</b></li>
+        <li>8 + 8 → <b>16</b></li>
+        <li>16 + 16 → <b>32</b> … und so weiter</li>
+      </ul>
+
+      <h3>✨ Neue Blöcke</h3>
+      <p>Nach jedem Zug erscheint ein neuer Block mit einer 2 (meistens) oder einer 4.</p>
+
+      <h3>🏆 Punkte</h3>
+      <p>Bei jedem Verschmelzen bekommst du den Wert des neuen Blocks als Punkte.</p>
+
+      <h3>🛟 Immer machbar</h3>
+      <ul>
+        <li>Neue Blöcke werden so gesetzt, dass nach Möglichkeit noch ein Zug übrig bleibt.</li>
+        <li>Mit <b>„Zug zurück“</b> gehst du jederzeit Schritt für Schritt zurück, beliebig oft (Taste Z).</li>
+      </ul>
+
+      <h3>💡 Tipps</h3>
+      <ul>
+        <li>Halte den größten Block in einer Ecke.</li>
+        <li>Wische möglichst nur in zwei bis drei Richtungen.</li>
+        <li>Spielstand, Rekord und letztes Ergebnis werden automatisch gespeichert.</li>
+      </ul>
+    </div>
+    <button class="btn block" data-a="closerules">Verstanden</button>
+  `;
+  window.scrollTo(0, 0);
+}
+
+const els = new Map();
+
+function renderPlay(){
+  const n = G.n;
+  $app.innerHTML = `
+    <div class="row" style="margin-bottom:12px">
+      <button class="btn ghost grow" data-a="menu">← Menü</button>
+      <button class="btn ghost grow" data-a="rules">📖 Regeln</button>
+    </div>
+
+    <header style="margin-bottom:12px">
+      <div class="logo" style="font-size:28px">DOUBLE IT</div>
+    </header>
+
+    <div class="stats">
+      <div class="stat"><small>Punkte</small><b id="sScore">0</b></div>
+      <div class="stat"><small>Rekord</small><b id="sBest">0</b></div>
+      <div class="stat"><small>Züge</small><b id="sMoves">0</b></div>
+    </div>
+
+    <div class="chain" id="chain"></div>
+
+    <div class="board" id="board">
+      <div class="cells" id="cells"></div>
+      <div class="layer" id="layer"></div>
+      <div class="overlay" id="overlay"></div>
+    </div>
+
+    <div class="row">
+      <button class="btn grow" id="undoBtn" data-a="undo">↶ Zug zurück</button>
+      <button class="btn ghost grow" id="newBtn" data-a="newgame">Neues Spiel</button>
+    </div>
+    <div class="hint" id="hint"></div>
+  `;
+  const b = $("board");
+  b.style.setProperty("--n", n);
+  b.style.setProperty("--gap", "8px");
+  $("cells").innerHTML = "<i></i>".repeat(n*n);
+  els.clear();
+  bindSwipe(b);
+  renderTiles();
+  window.scrollTo(0, 0);
+}
+
+function renderTiles(ghosts = []){
+  const keep = new Set(G.tiles.map(t => t.id));
+  ghosts.forEach(t => keep.add(t.id));
+
+  const place = (t, isGhost) => {
+    let el = els.get(t.id);
+    if(!el){
+      el = document.createElement("div");
+      el.innerHTML = '<div class="in"></div>';
+      $("layer").appendChild(el);
+      els.set(t.id, el);
+    }
+    el.className = "tile" + (isGhost ? " ghost" : "");
+    el.style.setProperty("--r", t.r);
+    el.style.setProperty("--c", t.c);
+    const inn = el.firstChild;
+    inn.textContent = t.v;
+    inn.style.background = colorOf(t.v);
+    const len = String(t.v).length;
+    const base = "in" + (len >= 5 ? " d5" : len === 4 ? " d4" : len === 3 ? " d3" : "") + (t.v >= TARGET ? " goal" : "");
+    inn.className = base;
+    const f = fx.get(t.id);
+    if(f && !isGhost){ void inn.offsetWidth; inn.className = base + " " + f; }
+    fx.delete(t.id);
+  };
+
+  G.tiles.forEach(t => place(t, false));
+  ghosts.forEach(t => place(t, true));
+
+  for(const [id, el] of els){
+    if(!keep.has(id)){ el.remove(); els.delete(id); }
+  }
+  ghosts.forEach(t => {
+    setTimeout(() => {
+      if(S.screen !== "play" || !G || G.tiles.some(x => x.id === t.id)) return;
+      const el = els.get(t.id);
+      if(el){ el.remove(); els.delete(t.id); }
+    }, 150);
+  });
+  updateUI();
+}
+
+function updateUI(){
+  const b = D.best[G.n] || { s:0, b:0 };
+  $("sScore").textContent = G.score;
+  $("sBest").textContent = b.s;
+  $("sMoves").textContent = G.moves;
+  $("undoBtn").textContent = "↶ Zug zurück" + (G.hist.length ? " (" + G.hist.length + ")" : "");
+  $("undoBtn").disabled = G.hist.length === 0;
+
+  const hi = highest(G);
+  let chips = "";
+  for(let v=2; v <= Math.max(TARGET, hi); v *= 2){
+    const on = hi >= v;
+    chips += `<span class="cchip ${on ? "on" : ""}" style="${on ? "background:" + colorOf(v) : ""}">${v}</span>`;
+  }
+  $("chain").innerHTML = chips;
+
+  const ov = $("overlay");
+  if(S.overlay === "over"){
+    ov.innerHTML = `<div class="big">Kein Zug mehr</div>
+      <p>${G.score} Punkte · höchster Block ${hi}. Geh einen Schritt zurück oder starte neu.</p>
+      <button class="btn ok" data-a="undo">↶ Zug zurück</button>
+      <button class="btn ghost" data-a="newnow">Neues Spiel</button>`;
+    ov.classList.add("show");
+  }else if(S.overlay === "win"){
+    ov.innerHTML = `<div class="big">🎉 ${TARGET} geschafft!</div>
+      <p>Stark! Spiel weiter und knacke noch höhere Zahlen.</p>
+      <button class="btn ok" data-a="dismiss">Weiterspielen</button>
+      <button class="btn ghost" data-a="newnow">Neues Spiel</button>`;
+    ov.classList.add("show");
+  }else{
+    ov.classList.remove("show");
+    ov.innerHTML = "";
+  }
+  $("hint").innerHTML = storageOk
+    ? "💾 Wird nur lokal auf diesem Gerät gespeichert"
+    : '<span class="warn">⚠️ Speichern nicht möglich (nur bis zum Neuladen)</span>';
+}
+
+/* ---------- Sicherheitsabfrage: zweiter Tipp bestätigt ---------- */
+let armedEl = null, armedT = null, armedHtml = "";
+function disarm(){
+  clearTimeout(armedT);
+  if(armedEl && armedEl.isConnected) armedEl.innerHTML = armedHtml;
+  armedEl = null;
+}
+function confirmTap(el){
+  if(armedEl === el){ clearTimeout(armedT); armedEl = null; return true; }
+  disarm();
+  armedEl = el; armedHtml = el.innerHTML;
+  el.textContent = "Sicher? Nochmal tippen";
+  armedT = setTimeout(disarm, 4000);
+  return false;
+}
+
+/* ---------- Events ---------- */
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-a]");
+  if(!el) return;
+  const a = el.dataset.a;
+  if(a !== "newgame" && a !== "resetrec" && a !== "clearall") disarm();
+  switch(a){
+    case "start": startGame(false); break;
+    case "cont": startGame(false); break;
+    case "newgame": {
+      const g = D.games[N];
+      const needsConfirm = S.screen === "play"
+        ? (G.moves > 0 && !G.over)
+        : (g && g.moves > 0 && !g.over);
+      if(!needsConfirm || confirmTap(el)){
+        startGame(true);
+        toast("Neues Spiel gestartet");
+      }
+      break;
+    }
+    case "newnow": startGame(true); break;
+    case "undo": undo(); break;
+    case "dismiss": S.overlay = null; updateUI(); break;
+    case "menu": S.screen = "home"; S.overlay = null; render(); break;
+    case "rules": S.prev = S.screen; S.screen = "rules"; render(); break;
+    case "closerules": S.screen = S.prev === "play" && G ? "play" : "home"; render(); break;
+    case "resetrec":
+      if(confirmTap(el)){ D.best = {}; D.last = null; save(); renderHome(); toast("Rekord zurückgesetzt"); }
+      break;
+    case "clearall":
+      if(confirmTap(el)){ D = { games:{}, best:{}, last:null }; G = null; save(); renderHome(); toast("Alles gelöscht"); }
+      break;
+  }
+});
+
+/* Tastatur */
+document.addEventListener("keydown", e => {
+  if(S.screen !== "play") return;
+  const map = { ArrowLeft:"left", ArrowRight:"right", ArrowUp:"up", ArrowDown:"down",
+                a:"left", d:"right", w:"up", s:"down", A:"left", D:"right", W:"up", S:"down" };
+  if(map[e.key]){ e.preventDefault(); move(map[e.key]); return; }
+  if(e.key === "z" || e.key === "Z" || e.key === "u" || e.key === "Backspace"){
+    e.preventDefault(); undo();
+  }
+});
+
+/* Wischen (Touch & Maus) */
+let sx = 0, sy = 0, sid = null;
+function bindSwipe(board){
+  board.addEventListener("pointerdown", e => {
+    if(e.target.closest(".overlay.show")) return;
+    sx = e.clientX; sy = e.clientY; sid = e.pointerId;
+  });
+  board.addEventListener("pointerup", e => {
+    if(sid === null || e.pointerId !== sid) return;
+    sid = null;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    if(Math.max(Math.abs(dx), Math.abs(dy)) < 20) return;
+    if(Math.abs(dx) > Math.abs(dy)) move(dx > 0 ? "right" : "left");
+    else move(dy > 0 ? "down" : "up");
+  });
+  board.addEventListener("pointercancel", () => { sid = null; });
+  board.addEventListener("touchmove", e => e.preventDefault(), { passive:false });
+}
+
+/* ---------- Start ---------- */
+load();
+save();
+render();
+</script>
+</body>
+</html>

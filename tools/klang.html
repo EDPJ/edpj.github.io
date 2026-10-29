@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0b0d12">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Klang-Tools</title>
+<script src="/toast.js"></script>
+<style>
+:root{
+  --bg:#0b0d12; --card:#151922; --card2:#1c2230; --line:#262d3d;
+  --text:#f2f4f8; --muted:#8c95a8;
+  --a1:#ff3b6b; --a2:#7c5cff;
+  --grad:linear-gradient(135deg,var(--a1),var(--a2));
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
+body{min-height:100vh;
+  background:
+    radial-gradient(600px 300px at 10% -5%,rgba(255,59,107,.18),transparent 60%),
+    radial-gradient(600px 300px at 100% 0%,rgba(124,92,255,.2),transparent 60%),
+    var(--bg);
+  background-attachment:fixed;touch-action:manipulation;overscroll-behavior-y:contain}
+#app{max-width:480px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 40px);}
+header{text-align:center;margin-bottom:14px}
+.logo{font-size:30px;font-weight:900;letter-spacing:3px;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.sub{color:var(--muted);font-size:13px;margin-top:2px}
+.row{display:flex;align-items:center;gap:10px}
+.grow{flex:1;min-width:0}
+.nav{margin-bottom:14px}
+a{color:inherit;text-decoration:none}
+.btn{display:inline-block;text-align:center;background:var(--grad);color:#fff;font-weight:700;border-radius:14px;padding:14px 18px;font-size:16px;
+  transition:transform .1s,opacity .2s}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:var(--card2);border:1px solid var(--line);color:var(--text)}
+.hint{color:var(--muted);font-size:12px;text-align:center;margin-top:10px;line-height:1.4}
+
+/* quadratische Kacheln */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+a.tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  aspect-ratio:1/1;min-width:0;padding:12px 10px;text-align:center;overflow:hidden;
+  background:var(--card);border:1px solid var(--line);border-radius:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.35);animation:pop .3s ease both;
+  transition:transform .12s,border-color .2s}
+a.tile:active{transform:scale(.97);border-color:var(--a2)}
+.tile .icon{width:60px;height:60px;flex:none;border-radius:14px;background:var(--grad);display:grid;place-items:center;font-size:32px;line-height:1}
+.tile .title{font-weight:800;font-size:16px}
+.tile .text{color:var(--muted);font-size:12px;line-height:1.35}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (max-width:360px){
+  a.tile{gap:6px;padding:10px 8px}
+  .tile .icon{width:48px;height:48px;font-size:26px;border-radius:12px}
+  .tile .title{font-size:15px}
+  .tile .text{font-size:11px}
+}
+@media (prefers-reduced-motion:reduce){a.tile{animation:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="row nav">
+    <a class="btn ghost grow" href="/index.html">⬅️ Home</a>
+  </div>
+  <header>
+    <div class="logo">KLANG</div>
+    <div class="sub">Vier Werkzeuge rund um Musik und Schall</div>
+  </header>
+
+  <div class="grid">
+    <a class="tile" href="klang/metronom.html" style="animation-delay:0ms">
+      <div class="icon">🥁</div>
+      <div class="title">Metronom</div>
+      <div class="text">Gleichmäßiger Takt, 20–300 BPM</div>
+    </a>
+    <a class="tile" href="klang/tongenerator.html" style="animation-delay:60ms">
+      <div class="icon">🎶</div>
+      <div class="title">Tongenerator</div>
+      <div class="text">Sinus, Rechteck, Sägezahn, Dreieck</div>
+    </a>
+    <a class="tile" href="klang/stimmgeraet.html" style="animation-delay:120ms">
+      <div class="icon">🎸</div>
+      <div class="title">Stimmgerät</div>
+      <div class="text">Töne per Mikrofon erkennen</div>
+    </a>
+    <a class="tile" href="klang/dezibelmesser.html" style="animation-delay:180ms">
+      <div class="icon">🔊</div>
+      <div class="title">Dezibelmesser</div>
+      <div class="text">Lautstärke messen und aufzeichnen</div>
+    </a>
+  </div>
+
+  <div class="hint">🎤 Stimmgerät und Dezibelmesser brauchen Zugriff auf das Mikrofon. Es wird nichts aufgenommen oder gespeichert.</div>
+</div>
+</body>
+</html>

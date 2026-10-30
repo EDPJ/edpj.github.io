@@ -3,440 +3,249 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#0b0d12">
 <title>Wizard – Punktetafel</title>
+<script src="/common.js"></script>
 <style>
-  :root{
-    --bg:#0b0d12; --card:#151922; --card2:#1c2230; --line:#262d3d;
-    --text:#f2f4f8; --muted:#8c95a8;
-    --a1:#ff3b6b; --a2:#7c5cff; --ok:#2ee59d; --warn:#ffb020;
-    --grad:linear-gradient(135deg,var(--a1),var(--a2));
-  }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;background:var(--bg);color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
-  body{min-height:100vh;
-    background:
-      radial-gradient(600px 300px at 10% -5%,rgba(255,59,107,.18),transparent 60%),
-      radial-gradient(600px 300px at 100% 0%,rgba(124,92,255,.2),transparent 60%),
-      var(--bg);
-    background-attachment:fixed;}
-  #app{max-width:480px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 150px);}
-  header{text-align:center;margin-bottom:14px}
-  .logo{font-size:34px;font-weight:900;letter-spacing:4px;
-    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
-  .sub{color:var(--muted);font-size:13px;margin-top:2px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px;
-    box-shadow:0 10px 30px rgba(0,0,0,.35)}
-  .card h2{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:700}
-  .row{display:flex;align-items:center;gap:10px}
-  .grow{flex:1;min-width:0}
-  input[type=text]{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:14px;
-    color:var(--text);font-size:16px;padding:14px;outline:none;transition:border .2s}
-  input[type=text]:focus{border-color:var(--a2)}
-  button{font:inherit;color:inherit;border:0;cursor:pointer}
-  a{color:inherit;text-decoration:none}
-  .btn{display:inline-block;text-align:center;background:var(--grad);color:#fff;font-weight:700;border-radius:14px;padding:14px 18px;font-size:16px;
-    transition:transform .1s,opacity .2s}
-  .btn:active{transform:scale(.97)}
-  .btn.block{width:100%}
-  .btn.ghost{background:var(--card2);border:1px solid var(--line);color:var(--text)}
-  .btn.ok{background:linear-gradient(135deg,#1fcf8a,#16a0c9)}
-  .btn.bad{background:linear-gradient(135deg,#ff3b6b,#ff7a3b)}
-  .btn:disabled{opacity:.4}
-  .btn small{font-weight:500;opacity:.9;font-size:12px}
-  .icon{width:38px;height:38px;border-radius:12px;background:var(--card2);border:1px solid var(--line);
-    font-size:18px;display:grid;place-items:center;flex:none}
-  .icon:active{transform:scale(.92)}
-  .player{display:flex;align-items:center;gap:10px;padding:10px;background:var(--card2);border:1px solid var(--line);
-    border-radius:14px;margin-top:8px;animation:pop .25s ease}
-  @keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-  .avatar{width:36px;height:36px;border-radius:50%;background:var(--grad);display:grid;place-items:center;
-    font-weight:800;flex:none}
-  .pname{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .psub{font-size:12px;color:var(--muted);font-weight:500;margin-top:1px}
-  .empty{color:var(--muted);text-align:center;font-size:14px;padding:10px 0 2px}
-  .setting{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0}
-  .setting + .setting{border-top:1px solid var(--line);margin-top:8px;padding-top:14px}
-  .setting b{display:block;font-size:15px}
-  .setting span{color:var(--muted);font-size:12px}
-  .switch{width:54px;height:32px;border-radius:99px;background:var(--card2);border:1px solid var(--line);
-    position:relative;flex:none;transition:background .25s}
-  .switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;
-    background:#fff;transition:transform .25s}
-  .switch.on{background:var(--grad);border-color:transparent}
-  .switch.on::after{transform:translateX(22px)}
-  .stepper{display:flex;align-items:center;gap:8px;flex:none}
-  .stepper .val{font-size:22px;font-weight:800;min-width:28px;text-align:center;font-variant-numeric:tabular-nums}
-  .bottom{position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(env(safe-area-inset-bottom) + 14px);
-    background:linear-gradient(to top,var(--bg) 60%,transparent);z-index:10}
-  .bottom .inner{max-width:480px;margin:0 auto}
-  .hint{color:var(--muted);font-size:12px;text-align:center;margin-top:10px}
-  .warnbox{background:rgba(255,176,32,.1);border:1px solid var(--warn);color:var(--warn);
-    border-radius:14px;padding:10px 12px;font-size:13px;margin-bottom:14px;line-height:1.4}
-  .okbox{background:rgba(46,229,157,.1);border:1px solid var(--ok);color:var(--ok);
-    border-radius:14px;padding:10px 12px;font-size:13px;margin-bottom:14px;line-height:1.4}
-  .link{background:none;color:var(--muted);font-size:13px;text-decoration:underline;padding:8px}
-  .muted{color:var(--muted)}
-  .big{font-size:26px;font-weight:800}
-  .tag{display:inline-block;padding:6px 12px;border-radius:99px;background:var(--card2);border:1px solid var(--line);
-    font-size:14px;color:var(--warn);font-weight:600}
-  .tag.dealer{color:#fff;border-color:var(--a2);font-size:11px;padding:2px 8px;margin-left:6px;vertical-align:middle}
-  .tag.start{color:var(--ok);border-color:var(--ok);font-size:11px;padding:2px 8px;margin-left:6px;vertical-align:middle}
-  .progress{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin:10px 0 4px}
-  .progress i{width:14px;height:5px;border-radius:9px;background:var(--line);transition:background .2s}
-  .progress i.d{background:var(--grad)}
-  .progress i.c{background:var(--warn)}
-  .rank{display:flex;align-items:center;gap:10px;padding:12px;background:var(--card2);border:1px solid var(--line);
-    border-radius:16px;margin-top:8px;animation:pop .3s ease both;text-align:left}
-  .rank.r1{border-color:#ffd24a;box-shadow:0 0 24px rgba(255,210,74,.18)}
-  .rank .pos{width:34px;text-align:center;font-size:22px;font-weight:800;flex:none}
-  .gain{font-size:12px;font-weight:800;color:var(--ok);background:rgba(46,229,157,.12);border:1px solid var(--ok);
-    border-radius:99px;padding:2px 8px;white-space:nowrap}
-  .gain.neg{color:var(--a1);background:rgba(255,59,107,.12);border-color:var(--a1)}
-  .rank .total{font-size:22px;font-weight:900;min-width:44px;text-align:right;font-variant-numeric:tabular-nums}
-  .rules h3{margin:18px 0 6px;font-size:16px}
-  .rules h3:first-child{margin-top:0}
-  .rules p,.rules li{color:#c9d0de;font-size:14px;line-height:1.55;margin:0 0 6px}
-  .rules ul,.rules ol{padding-left:20px;margin:0 0 6px}
-  .back{display:flex;align-items:center;gap:8px;background:none;color:var(--muted);font-size:15px;padding:6px 0;margin-bottom:10px}
-  .roundhead{text-align:center;margin-bottom:12px}
-  .cards-n{display:inline-flex;align-items:center;gap:8px;font-size:15px;color:var(--muted)}
-  .sumline{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);padding:4px 2px 0}
+  /* Nur Wizard-spezifisches CSS. Alles andere kommt aus common.js */
+  .roundhead{text-align:center;margin-bottom:var(--sp-12)}
+  .roundhead header{margin-bottom:0}
+  .roundhead .progress.small{margin:var(--sp-10) 0 var(--sp-4)}
+  .roundhead .progress:not(.small){margin:var(--sp-10) 0 var(--sp-4)}
+  .cards-n{margin-top:var(--sp-6);font-size:var(--fs-base);color:var(--muted)}
+  .cards-n b{color:var(--text)}
+  .roundinfo{margin-top:var(--sp-12)}
+  .gamebtns{margin-top:var(--sp-12)}
+  .sumline{display:flex;justify-content:space-between;font-size:var(--fs-text);color:var(--muted);padding:var(--sp-4) 2px 0}
   .sumline b{color:var(--text)}
-  .mini{display:flex;flex-direction:column;align-items:center;gap:4px}
-  .mini .lbl{font-size:9px;letter-spacing:1px;color:var(--muted);font-weight:700;text-transform:uppercase}
-  .mini .stepper .icon{width:32px;height:32px;font-size:16px;border-radius:10px}
-  .mini .stepper .val{font-size:18px;min-width:20px}
-  .mini .stepper{gap:5px}
-  .tblwrap{overflow-x:auto;border-radius:14px;border:1px solid var(--line);background:var(--card2)}
-  table{border-collapse:collapse;width:100%;font-size:13px}
-  th,td{padding:8px 8px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
-  th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;position:sticky;top:0;background:var(--card2)}
+  .ok-t{color:var(--ok)}
+  .bad-t{color:var(--a1)}
+  .tblwrap{overflow-x:auto;border-radius:var(--r-btn);border:1px solid var(--line);background:var(--card2)}
+  table{border-collapse:collapse;width:100%;font-size:var(--fs-small)}
+  th,td{padding:var(--sp-8);text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{font-size:var(--fs-xs);color:var(--muted);text-transform:uppercase;letter-spacing:.5px;position:sticky;top:0;background:var(--card2)}
   th:first-child,td:first-child{position:sticky;left:0;background:var(--card2);text-align:left;z-index:1;border-right:1px solid var(--line)}
   tr.clk{cursor:pointer}
-  tr.clk:active td{background:#232b3d}
-  td .bw{font-size:11px;color:var(--muted)}
+  tr.clk:active td{background:var(--row-active)}
+  td .bw{font-size:var(--fs-xs);color:var(--muted)}
   td .sc{font-weight:800;font-variant-numeric:tabular-nums}
-  td .pt{font-size:11px;font-weight:700}
-  td .pt.pos{color:var(--ok)} td .pt.neg{color:var(--a1)}
-  tr.tot td{font-weight:900;font-size:15px;border-bottom:0}
-  .ok-t{color:var(--ok)} .bad-t{color:var(--a1)}
+  td .pt{font-size:var(--fs-xs);font-weight:700}
+  tr.tot td{font-weight:900;font-size:var(--fs-base);border-bottom:0}
 </style>
-<!-- Toasts aus extra Datei (muss im selben Ordner liegen) -->
-<script src="/toast.js"></script>
 </head>
 <body>
 <div id="app"></div>
 
 <script>
-/* ---------- Speicher: nur lokal (localStorage) ---------- */
-const KEY = "wizard_data_v1";
-let storageOk = true;
+const { ui, esc, fmt } = App;
 
-function save(){
-  try{
-    localStorage.setItem(KEY, JSON.stringify({ p: S.players, h: S.house ? 1 : 0, g: S.game }));
-    storageOk = true;
-  }catch(e){ storageOk = false; }
-}
-function load(){
-  let raw = null;
-  try{ raw = localStorage.getItem(KEY); }catch(e){}
-  if(!raw) return;
-  try{
-    const d = JSON.parse(raw);
-    S.players = (d.p || []).map(String);
-    S.house = d.h !== 0;
-    S.game = d.g || null;
-    if(S.game && (!Array.isArray(S.game.rounds) || S.game.names?.length !== S.game.rounds[0]?.bids.length)) S.game = null;
-  }catch(e){}
-}
+/* ---------- Speicher: nur lokal (localStorage) ---------- */
+const store = App.store.create("wizard_data_v1", {
+  defaults: { players: [], house: true, game: null },
+  encode: d => ({ p: d.players, h: d.house ? 1 : 0, g: d.game }),
+  decode: raw => {
+    let game = raw.g || null;
+    if (game && (!Array.isArray(game.rounds) || game.names?.length !== game.rounds[0]?.bids.length)) game = null;
+    return { players: (raw.p || []).map(String), house: raw.h !== 0, game };
+  },
+  validate: d => Array.isArray(d.players)
+});
 
 /* ---------- State ---------- */
-const S = { players: [], house: true, game: null, screen: "home", from: "round", edit: null };
-load();
+const S = Object.assign(store.load(), { from: "home", edit: null });
+const save = () => store.save({ players: S.players, house: S.house, game: S.game });
 
-/* ---------- Helpers ---------- */
-const $app = document.getElementById("app");
-const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+/* ---------- Helfer ---------- */
 const totalRounds = n => Math.floor(60 / n);
-/* toast(text, typ) kommt aus toast.js */
 const pts = (b, w) => b === w ? 20 + 10 * w : -10 * Math.abs(b - w);
-const sgn = v => v > 0 ? "+" + v : String(v);
 const names = () => S.game.names;
 const gameActive = () => S.game && !S.game.finished;
+const sum = a => a.reduce((x, y) => x + y, 0);
 
 function totals(upTo){ // Summe über abgeschlossene Runden (optional bis Index)
   const g = S.game, n = g.names.length;
   const t = Array(n).fill(0);
   g.rounds.forEach((r, ri) => {
-    if(!r.done || (upTo !== undefined && ri > upTo)) return;
-    for(let i = 0; i < n; i++) t[i] += pts(r.bids[i], r.won[i]);
+    if (!r.done || (upTo !== undefined && ri > upTo)) return;
+    for (let i = 0; i < n; i++) t[i] += pts(r.bids[i], r.won[i]);
   });
   return t;
 }
-const sum = a => a.reduce((x, y) => x + y, 0);
 
-/* ---------- Spiel starten ---------- */
 function newGame(){
   const n = S.players.length;
-  if(n < 3) return toast("Mindestens 3 Spieler nötig", "info");
+  if (!App.checkPlayers(n, 3, 6)) return;
   const R = totalRounds(n);
   S.game = {
     names: S.players.slice(),
     dealer0: Math.floor(Math.random() * n),
     cur: 0, phase: "bid", finished: false,
-    rounds: Array.from({length: R}, () => ({ bids: Array(n).fill(0), won: Array(n).fill(0), done: false }))
+    rounds: Array.from({ length: R }, () => ({ bids: Array(n).fill(0), won: Array(n).fill(0), done: false }))
   };
-  S.screen = "round";
-  save(); render(); window.scrollTo(0, 0);
+  save();
+  App.go("round");
 }
 
-/* ---------- Render ---------- */
-function render(){
-  if(S.screen === "home") return renderHome();
-  if(S.screen === "rules") return renderRules();
-  if(S.screen === "round") return renderRound();
-  if(S.screen === "table") return renderTable();
-  if(S.screen === "edit") return renderEdit();
-  if(S.screen === "final") return renderFinal();
-}
+const stp = (f, r, i, val, mini) =>
+  ui.stepper(val, { action: "stp", data: { f, r, i }, mini: !!mini, label: mini ? (f === "bids" ? "Ansage" : "Stiche") : "" });
 
-function stepper(f, r, i, val){
-  return `<div class="stepper">
-    <button class="icon" data-a="stp" data-f="${f}" data-r="${r}" data-i="${i}" data-d="-1" aria-label="Weniger">−</button>
-    <div class="val">${val}</div>
-    <button class="icon" data-a="stp" data-f="${f}" data-r="${r}" data-i="${i}" data-d="1" aria-label="Mehr">+</button>
-  </div>`;
-}
-function miniStepper(lbl, f, r, i, val){
-  return `<div class="mini"><div class="lbl">${lbl}</div>${stepper(f, r, i, val)}</div>`;
-}
+const nameRanking = (tot, gains, subs) =>
+  ui.ranking(names().map((nm, i) => ({
+    name: nm, total: tot[i],
+    gain: gains ? gains[i] : null,
+    sub: subs ? subs[i] : ""
+  })));
 
+/* ---------- Screens ---------- */
 function renderHome(){
   const n = S.players.length;
   const active = gameActive();
-  const locked = !!active;
-  const players = n ? S.players.map((p, i) => `
-    <div class="player">
-      <div class="avatar">${esc(p.charAt(0).toUpperCase())}</div>
-      <div class="grow pname">${esc(p)}</div>
-      ${locked ? "" : `<button class="icon" data-a="del" data-i="${i}" aria-label="Entfernen">✕</button>`}
-    </div>`).join("") : `<div class="empty">Noch keine Spieler. Füge 3 bis 6 hinzu.</div>`;
-
-  const storageText = storageOk
-    ? "💾 Wird nur lokal auf diesem Gerät gespeichert"
-    : "⚠️ Speichern nicht möglich (nur bis zum Neuladen)";
 
   let gameCard = "";
-  if(active){
+  if (active) {
     const g = S.game, done = g.rounds.filter(r => r.done).length;
-    gameCard = `<div class="card">
-      <h2>Laufendes Spiel</h2>
-      <div class="setting" style="padding-top:0"><div><b>Runde ${g.cur + 1} von ${g.rounds.length}</b><span>${done} Runden abgeschlossen · ${g.names.length} Spieler</span></div></div>
-      <div class="row" style="margin-top:12px">
-        <button class="btn ghost grow" data-a="table" data-from="round">📊 Punktetafel</button>
-        <button class="btn ghost grow" data-a="abort">Spiel abbrechen</button>
-      </div>
-    </div>`;
-  }else if(S.game && S.game.finished){
-    gameCard = `<div class="card">
-      <h2>Letztes Spiel</h2>
-      <button class="btn ghost block" data-a="gotofinal">🏆 Endergebnis ansehen</button>
-    </div>`;
+    gameCard = ui.card("Laufendes Spiel",
+      `<div class="setting"><div><b>Runde ${g.cur + 1} von ${g.rounds.length}</b><span>${done} Runden abgeschlossen · ${g.names.length} Spieler</span></div></div>
+       <div class="row gamebtns">
+         ${ui.btn("📊 Punktetafel", { kind: "ghost", grow: true, action: "table" })}
+         ${ui.btn("Spiel abbrechen", { kind: "ghost", grow: true, action: "abort", confirm: true })}
+       </div>`);
+  } else if (S.game && S.game.finished) {
+    gameCard = ui.card("Letztes Spiel",
+      ui.btn("🏆 Endergebnis ansehen", { kind: "ghost", block: true, action: "gotofinal" }));
   }
 
-  $app.innerHTML = `
-    <div class="row" style="margin-bottom:14px">
-      <a class="btn ghost grow" href="/index.html">⬅️ Home</a>
-      <button class="btn ghost grow" data-a="rules">📖 Regeln &amp; Punkte</button>
-    </div>
-    <header>
-      <div class="logo">WIZARD</div>
-      <div class="sub">Punktetafel für dein Kartenspiel</div>
-    </header>
+  const playerCard = ui.playerCard({
+    players: S.players,
+    locked: !!active,
+    min: 3, max: 6,
+    empty: "Noch keine Spieler. Füge 3 bis 6 hinzu.",
+    hint: n >= 3 && n <= 6 ? `${totalRounds(n)} Runden bei ${n} Spielern` : "",
+    onAdd: name => { S.players.push(name); save(); },
+    onDelete: i => { S.players.splice(i, 1); save(); }
+  });
 
-    ${gameCard}
+  const settings = ui.settings([
+    { type: "switch", title: "Hausregel", desc: "Warnung und Sperre, wenn Summe der Ansagen = Stichzahl", on: S.house, action: "house" }
+  ]);
 
-    <div class="card">
-      <h2>Spieler (${n})${locked ? " · gesperrt" : ""}</h2>
-      ${locked ? "" : `<form class="row" id="addForm" autocomplete="off">
-        <div class="grow"><input type="text" id="nameInput" placeholder="Name eingeben…" maxlength="20" enterkeyhint="done"></div>
-        <button class="btn" type="submit">Hinzufügen</button>
-      </form>`}
-      ${players}
-      ${n >= 3 && n <= 6 ? `<div class="hint" style="text-align:left">${totalRounds(n)} Runden bei ${n} Spielern</div>` : ""}
-    </div>
+  const storage = ui.storageCard([
+    { kind: "clearAll", run: () => { S.players = []; S.game = null; save(); } }
+  ]);
 
-    <div class="card">
-      <h2>Einstellungen</h2>
-      <div class="setting">
-        <div><b>Hausregel</b><span>Warnung und Sperre, wenn Summe der Ansagen = Stichzahl</span></div>
-        <button class="switch ${S.house ? "on" : ""}" data-a="house" role="switch" aria-checked="${S.house}" aria-label="Hausregel"></button>
-      </div>
-    </div>
+  const bottom = ui.bottom(active
+    ? ui.btn("Spiel fortsetzen", { block: true, action: "resume" })
+    : ui.btn(n > 6 ? "Maximal 6 Spieler" : "Neues Spiel starten", { block: true, action: "start", disabled: n < 3 || n > 6 }));
 
-    <div class="card">
-      <h2>Speicher</h2>
-      <div class="row">
-        <button class="btn ghost grow" data-a="clearall">Alles löschen</button>
-      </div>
-      <div class="hint">${storageText}</div>
-    </div>
-
-    <div class="bottom"><div class="inner">
-      ${active
-        ? `<button class="btn block" data-a="resume">Spiel fortsetzen</button>`
-        : `<button class="btn block" data-a="start" ${(n < 3 || n > 6) ? "disabled" : ""}>${n > 6 ? "Maximal 6 Spieler" : "Neues Spiel starten"}</button>`}
-    </div></div>
-  `;
+  App.render(
+    ui.topbar([], { info: true }) +
+    ui.header("WIZARD", "Punktetafel für dein Kartenspiel") +
+    gameCard + playerCard + settings + storage + bottom
+  );
 }
 
 function renderRules(){
-  $app.innerHTML = `
-    <button class="back" data-a="menu">← Zurück</button>
-    <header>
-      <div class="logo" style="font-size:28px">REGELN</div>
-      <div class="sub">Kurzfassung Wizard &amp; Punktetafel</div>
-    </header>
-    <div class="card rules">
-      <h3>🎯 Idee</h3>
-      <p>Wizard ist ein Stichspiel. Vor jeder Runde sagt jeder an, wie viele Stiche er genau gewinnen wird. Wer richtig liegt, bekommt Punkte, wer danebenliegt, verliert welche.</p>
-
-      <h3>🃏 Runden</h3>
-      <ul>
-        <li>60 Karten: 52 normale, 4 Zauberer, 4 Narren.</li>
-        <li>In Runde 1 bekommt jeder 1 Karte, in Runde 2 zwei Karten usw.</li>
-        <li>3 Spieler = 20 Runden · 4 = 15 · 5 = 12 · 6 = 10.</li>
-        <li>Der Geber wechselt jede Runde reihum. Links vom Geber wird zuerst angesagt.</li>
-      </ul>
-
-      <h3>🗣️ Ansage &amp; Stiche</h3>
-      <ol>
-        <li>Alle sagen ihre Stichzahl an. Trage sie in der App ein.</li>
-        <li>Es wird gespielt. Danach trägst du ein, wie viele Stiche jeder tatsächlich gewonnen hat.</li>
-        <li>Die Summe der Stiche muss der Kartenzahl der Runde entsprechen.</li>
-      </ol>
-
-      <h3>🏆 Punkte</h3>
-      <ul>
-        <li><b>Richtig angesagt:</b> 20 Punkte + 10 pro Stich.</li>
-        <li><b>Falsch angesagt:</b> −10 Punkte pro Stich Abweichung.</li>
-      </ul>
-      <p>Beispiele: Ansage 2, Stiche 2 = +40 · Ansage 0, Stiche 0 = +20 · Ansage 3, Stiche 1 = −20.</p>
-
-      <h3>🏠 Hausregel</h3>
-      <p>Viele spielen so, dass die Summe aller Ansagen nicht der Stichzahl entsprechen darf (der Geber muss anpassen). Ist die Hausregel an, warnt die App und lässt dich erst weiter, wenn die Summe der Ansagen nicht mehr der Stichzahl entspricht.</p>
-
-      <h3>💡 Tipps</h3>
-      <ul>
-        <li>In der Punktetafel kannst du eine abgeschlossene Runde antippen und korrigieren.</li>
-        <li>Mit „Vorherige Runde“ kommst du zur letzten Auswertung zurück.</li>
-        <li>Alles wird automatisch auf diesem Gerät gespeichert.</li>
-      </ul>
-    </div>
-    <button class="btn block" data-a="menu">Verstanden</button>
-  `;
-  window.scrollTo(0, 0);
-}
-
-function rankRows(tot, gains, subs){
-  const n = tot.length, nm = names();
-  const sorted = tot.map((t, i) => ({t, i})).sort((a, b) => b.t - a.t);
-  let rank = 0, prev = null;
-  return sorted.map((o, k) => {
-    if(o.t !== prev){ rank = k + 1; prev = o.t; }
-    const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank + ".";
-    const gn = gains ? gains[o.i] : null;
-    return `<div class="rank ${rank === 1 ? "r1" : ""}" style="animation-delay:${k * 60}ms">
-      <div class="pos">${medal}</div>
-      <div class="avatar">${esc(nm[o.i].charAt(0).toUpperCase())}</div>
-      <div class="grow"><div class="pname">${esc(nm[o.i])}</div>${subs ? `<div class="psub">${subs[o.i]}</div>` : ""}</div>
-      ${gn !== null && gn !== undefined ? `<span class="gain ${gn < 0 ? "neg" : ""}">${sgn(gn)}</span>` : ""}
-      <div class="total">${o.t}</div>
-    </div>`;
-  }).join("");
+  App.render(ui.rules({
+    sub: "So funktioniert Wizard",
+    sections: [
+      { h: "🎯 Idee", p: "Wizard ist ein Stichspiel. Vor jeder Runde sagt jeder an, wie viele Stiche er genau gewinnen wird. Wer richtig liegt, bekommt Punkte, wer danebenliegt, verliert welche." },
+      { h: "🃏 Runden", ul: [
+        "60 Karten: 52 normale, 4 Zauberer, 4 Narren.",
+        "In Runde 1 bekommt jeder 1 Karte, in Runde 2 zwei Karten usw.",
+        "3 Spieler = 20 Runden · 4 = 15 · 5 = 12 · 6 = 10.",
+        "Der Geber wechselt jede Runde reihum. Links vom Geber wird zuerst angesagt."
+      ] },
+      { h: "🗣️ Ansage & Stiche", ol: [
+        "Alle sagen ihre Stichzahl an. Trage sie in der App ein.",
+        "Es wird gespielt. Danach trägst du ein, wie viele Stiche jeder tatsächlich gewonnen hat.",
+        "Die Summe der Stiche muss der Kartenzahl der Runde entsprechen."
+      ] },
+      { h: "🏆 Punkte", ul: [
+        "**Richtig angesagt:** 20 Punkte + 10 pro Stich.",
+        "**Falsch angesagt:** −10 Punkte pro Stich Abweichung.",
+        "**Beispiele:** Ansage 2, Stiche 2 = +40 · Ansage 0, Stiche 0 = +20 · Ansage 3, Stiche 1 = −20."
+      ] },
+      { h: "🏠 Hausregel", p: "Viele spielen so, dass die Summe aller Ansagen nicht der Stichzahl entsprechen darf (der Geber muss anpassen). Ist die Hausregel an, warnt die App und lässt dich erst weiter, wenn die Summe der Ansagen nicht mehr der Stichzahl entspricht." },
+      { h: "💡 Tipps", ul: [
+        "In der Punktetafel kannst du eine abgeschlossene Runde antippen und korrigieren.",
+        "Mit „Vorherige Runde“ kommst du zur letzten Auswertung zurück.",
+        "Alles wird automatisch auf diesem Gerät gespeichert."
+      ] }
+    ]
+  }));
 }
 
 function renderRound(){
   const g = S.game, n = g.names.length, ri = g.cur, r = g.rounds[ri], cards = ri + 1;
   const dealer = (g.dealer0 + ri) % n;
-  const order = Array.from({length: n}, (_, k) => (dealer + 1 + k) % n);
-  const dots = g.rounds.map((rr, i) => `<i class="${rr.done ? "d" : i === ri ? "c" : ""}"></i>`).join("");
-  const head = `
-    <div class="roundhead">
-      <div class="logo" style="font-size:26px">RUNDE ${ri + 1}</div>
-      <div class="sub">von ${g.rounds.length}</div>
-      <div class="progress">${dots}</div>
-      <div class="cards-n" style="margin-top:6px">🃏 <b style="color:var(--text)">${cards}</b> ${cards === 1 ? "Karte" : "Karten"} pro Spieler</div>
-    </div>`;
-  const topbar = `
-    <div class="row" style="margin-bottom:14px">
-      <button class="btn ghost grow" data-a="menu">← Menü</button>
-      <button class="btn ghost grow" data-a="table" data-from="round">📊 Punktetafel</button>
-    </div>`;
+  const order = Array.from({ length: n }, (_, k) => (dealer + 1 + k) % n);
+  const topbar = ui.topbar([{ label: "📊 Punktetafel", action: "table" }], { menu: true });
 
-  if(g.phase === "summary"){
+  /* ----- Auswertung ----- */
+  if (g.phase === "summary") {
     const gains = r.bids.map((b, i) => pts(b, r.won[i]));
     const subs = r.bids.map((b, i) => `Ansage ${b} · Stiche ${r.won[i]} ${b === r.won[i] ? "✅" : "❌"}`);
     const last = ri + 1 >= g.rounds.length;
-    $app.innerHTML = `
-      ${topbar}
-      <header><div class="logo" style="font-size:26px">AUSWERTUNG</div><div class="sub">Runde ${ri + 1} · Zwischenstand</div></header>
-      <div class="card">${rankRows(totals(), gains, subs)}</div>
-      <div class="bottom"><div class="inner">
-        <button class="btn block" data-a="${last ? "finish" : "nextround"}" style="margin-bottom:10px">${last ? "🏆 Zum Endergebnis" : "Nächste Runde →"}</button>
-        <button class="btn ghost block" data-a="backtowon">← Stiche korrigieren</button>
-      </div></div>`;
+    App.render(
+      topbar +
+      ui.header("AUSWERTUNG", `Runde ${ri + 1} · Zwischenstand`, "md") +
+      ui.card("", nameRanking(totals(), gains, subs)) +
+      ui.bottom(
+        ui.btn(last ? "🏆 Zum Endergebnis" : "Nächste Runde →", { block: true, action: last ? "finish" : "nextround" }) +
+        ui.stepBack("Stiche korrigieren", { block: true, action: "backtowon" }),
+        "col")
+    );
     return;
   }
 
+  /* ----- Ansagen / Stiche ----- */
   const bidPhase = g.phase === "bid";
+  const head = `<div class="roundhead">
+      ${ui.header(`RUNDE ${ri + 1}`, `von ${g.rounds.length}`, "md")}
+      ${ui.progress(g.rounds.length, g.rounds.map(rr => rr.done), ri)}
+      <div class="cards-n">🃏 <b>${cards}</b> ${cards === 1 ? "Karte" : "Karten"} pro Spieler</div>
+    </div>`;
+
   const rows = order.map(i => {
-    const tags = (i === dealer ? `<span class="tag dealer">Geber</span>` : "") + (i === order[0] ? `<span class="tag start">Beginnt</span>` : "");
-    if(bidPhase){
-      return `<div class="player"><div class="avatar">${esc(g.names[i].charAt(0).toUpperCase())}</div>
-        <div class="grow pname">${esc(g.names[i])}${tags}</div>${stepper("bids", ri, i, r.bids[i])}</div>`;
+    if (bidPhase) {
+      const tags = (i === dealer ? ui.tag("Geber", "inline dealer") : "") + (i === order[0] ? ui.tag("Beginnt", "inline start") : "");
+      return `<div class="player">${ui.avatar(g.names[i])}<div class="grow pname">${esc(g.names[i])}${tags}</div>${stp("bids", ri, i, r.bids[i])}</div>`;
     }
     const p = pts(r.bids[i], r.won[i]);
-    return `<div class="player"><div class="avatar">${esc(g.names[i].charAt(0).toUpperCase())}</div>
+    return `<div class="player">${ui.avatar(g.names[i])}
       <div class="grow"><div class="pname">${esc(g.names[i])}</div>
-        <div class="psub">Ansage ${r.bids[i]} · <span class="${p < 0 ? "bad-t" : "ok-t"}">${sgn(p)}</span></div></div>
-      ${stepper("won", ri, i, r.won[i])}</div>`;
+        <div class="psub">Ansage ${r.bids[i]} · <span class="${p < 0 ? "bad-t" : "ok-t"}">${fmt.signed(p)}</span></div></div>
+      ${stp("won", ri, i, r.won[i])}</div>`;
   }).join("");
 
   let info = "", ready = true;
-  if(bidPhase){
+  if (bidPhase) {
     const s = sum(r.bids);
     ready = !(S.house && s === cards);
-    if(!ready) info = `<div class="warnbox">⚠️ Summe der Ansagen (${s}) = Stichzahl. Laut Hausregel muss der Geber (${esc(g.names[dealer])}) anders ansagen. Weiter ist erst möglich, wenn die Summe nicht mehr der Stichzahl entspricht.</div>`;
+    if (!ready) info = ui.warnbox(`⚠️ Summe der Ansagen (${s}) = Stichzahl. Laut Hausregel muss der Geber (${esc(g.names[dealer])}) anders ansagen. Weiter ist erst möglich, wenn die Summe nicht mehr der Stichzahl entspricht.`);
     info += `<div class="sumline"><span>Summe Ansagen</span><b class="${ready ? "" : "bad-t"}">${s} / ${cards}</b></div>`;
-  }else{
+  } else {
     const s = sum(r.won);
     ready = s === cards;
     info = `<div class="sumline"><span>Summe Stiche</span><b class="${ready ? "ok-t" : "bad-t"}">${s} / ${cards}</b></div>`;
   }
 
-  $app.innerHTML = `
-    ${topbar}
-    ${head}
-    <div class="card">
-      <h2>${bidPhase ? "1 · Ansagen" : "2 · Gewonnene Stiche"}</h2>
-      ${rows}
-      <div style="margin-top:12px">${info}</div>
-    </div>
-    <div class="bottom"><div class="inner">
-      ${bidPhase
-        ? `<button class="btn block" data-a="tostiche" ${ready ? "" : "disabled"} ${ri > 0 ? 'style="margin-bottom:10px"' : ""}>Weiter zu den Stichen</button>
-           ${ri > 0 ? `<button class="btn ghost block" data-a="prevround">← Vorherige Runde</button>` : ""}`
-        : `<button class="btn block" data-a="evaluate" ${ready ? "" : "disabled"} style="margin-bottom:10px">Runde auswerten</button>
-           <button class="btn ghost block" data-a="backtobid">← Ansagen ändern</button>`}
-    </div></div>`;
+  const bottom = bidPhase
+    ? (ri > 0
+        ? ui.bottom(ui.btn("Weiter zu den Stichen", { block: true, action: "tostiche", disabled: !ready }) +
+                    ui.stepBack("Vorherige Runde", { block: true, action: "prevround" }), "col")
+        : ui.bottom(ui.btn("Weiter zu den Stichen", { block: true, action: "tostiche", disabled: !ready })))
+    : ui.bottom(ui.btn("Runde auswerten", { block: true, action: "evaluate", disabled: !ready }) +
+                ui.stepBack("Ansagen ändern", { block: true, action: "backtobid" }), "col");
+
+  App.render(
+    topbar + head +
+    ui.card(bidPhase ? "1 · Ansagen" : "2 · Gewonnene Stiche", rows + `<div class="roundinfo">${info}</div>`) +
+    bottom
+  );
 }
 
 function renderTable(){
-  const g = S.game, n = g.names.length;
+  const g = S.game;
   const doneIdx = g.rounds.map((r, i) => r.done ? i : -1).filter(i => i >= 0);
   const head = `<tr><th>Runde</th>${g.names.map(nm => `<th>${esc(nm.length > 7 ? nm.slice(0, 7) + "…" : nm)}</th>`).join("")}</tr>`;
   const body = doneIdx.map(ri => {
@@ -444,151 +253,106 @@ function renderTable(){
     return `<tr class="clk" data-a="edit" data-r="${ri}"><td><b>${ri + 1}</b> <span class="bw">· ${ri + 1}🃏</span></td>
       ${g.names.map((_, i) => {
         const p = pts(r.bids[i], r.won[i]);
-        return `<td><div class="bw">${r.bids[i]}/${r.won[i]}</div><div class="pt ${p < 0 ? "neg" : "pos"}">${sgn(p)}</div><div class="sc">${cum[i]}</div></td>`;
+        return `<td><div class="bw">${r.bids[i]}/${r.won[i]}</div><div class="pt ${p < 0 ? "bad-t" : "ok-t"}">${fmt.signed(p)}</div><div class="sc">${cum[i]}</div></td>`;
       }).join("")}</tr>`;
   }).join("");
   const tot = totals();
   const totRow = `<tr class="tot"><td>Σ</td>${tot.map(t => `<td>${t}</td>`).join("")}</tr>`;
-  $app.innerHTML = `
-    <button class="back" data-a="tableback">← Zurück</button>
-    <header><div class="logo" style="font-size:28px">PUNKTETAFEL</div><div class="sub">Ansage/Stiche · Punkte · Zwischenstand</div></header>
-    ${doneIdx.length ? `<div class="tblwrap"><table>${head}${body}${totRow}</table></div>
-      <div class="hint">Tippe auf eine Runde, um sie zu korrigieren.</div>`
-      : `<div class="card"><div class="empty">Noch keine Runde abgeschlossen.</div></div>`}
-    ${doneIdx.length ? `<div class="card" style="margin-top:14px"><h2>Ranking</h2>${rankRows(tot)}</div>` : ""}
-  `;
-  window.scrollTo(0, 0);
+
+  App.render(
+    ui.back("tableback") +
+    ui.header("PUNKTETAFEL", "Ansage/Stiche · Punkte · Zwischenstand", "md") +
+    (doneIdx.length
+      ? `<div class="tblwrap"><table>${head}${body}${totRow}</table></div>` +
+        ui.hint("Tippe auf eine Runde, um sie zu korrigieren.") +
+        `<div style="margin-top:var(--sp-14)">${ui.card("Ranking", nameRanking(tot))}</div>`
+      : ui.card("", ui.empty("Noch keine Runde abgeschlossen.")))
+  );
 }
 
 function renderEdit(){
-  const g = S.game, ri = S.edit, r = g.rounds[ri], cards = ri + 1, n = g.names.length;
+  const g = S.game, ri = S.edit, r = g.rounds[ri], cards = ri + 1;
   const rows = g.names.map((nm, i) => {
     const p = pts(r.bids[i], r.won[i]);
-    return `<div class="player"><div class="avatar">${esc(nm.charAt(0).toUpperCase())}</div>
-      <div class="grow"><div class="pname">${esc(nm)}</div><div class="psub"><span class="${p < 0 ? "bad-t" : "ok-t"}">${sgn(p)}</span></div></div>
-      ${miniStepper("Ansage", "bids", ri, i, r.bids[i])}
-      ${miniStepper("Stiche", "won", ri, i, r.won[i])}
-    </div>`;
+    return `<div class="player">${ui.avatar(nm)}
+      <div class="grow"><div class="pname">${esc(nm)}</div><div class="psub"><span class="${p < 0 ? "bad-t" : "ok-t"}">${fmt.signed(p)}</span></div></div>
+      ${stp("bids", ri, i, r.bids[i], true)}${stp("won", ri, i, r.won[i], true)}</div>`;
   }).join("");
   const s = sum(r.won), ready = s === cards;
-  $app.innerHTML = `
-    <button class="back" data-a="table" data-from="${S.from}">← Zur Punktetafel</button>
-    <header><div class="logo" style="font-size:26px">RUNDE ${ri + 1} KORRIGIEREN</div><div class="sub">${cards} ${cards === 1 ? "Karte" : "Karten"} pro Spieler</div></header>
-    <div class="card">
-      ${rows}
-      <div style="margin-top:12px"><div class="sumline"><span>Summe Stiche</span><b class="${ready ? "ok-t" : "bad-t"}">${s} / ${cards}</b></div></div>
-    </div>
-    <div class="bottom"><div class="inner">
-      <button class="btn block" data-a="table" data-from="${S.from}" ${ready ? "" : "disabled"}>Speichern</button>
-    </div></div>`;
-  window.scrollTo(0, 0);
+
+  App.render(
+    ui.back("table", "Zur Punktetafel") +
+    ui.header(`RUNDE ${ri + 1} KORRIGIEREN`, `${cards} ${cards === 1 ? "Karte" : "Karten"} pro Spieler`, "md") +
+    ui.card("", rows +
+      `<div class="roundinfo"><div class="sumline"><span>Summe Stiche</span><b class="${ready ? "ok-t" : "bad-t"}">${s} / ${cards}</b></div></div>`) +
+    ui.bottom(ui.btn("Speichern", { block: true, action: "table", disabled: !ready }))
+  );
 }
 
 function renderFinal(){
   const g = S.game, tot = totals();
   const max = Math.max(...tot);
   const winners = g.names.filter((_, i) => tot[i] === max);
-  $app.innerHTML = `
-    <header>
-      <div class="logo" style="font-size:28px">ENDERGEBNIS</div>
-      <div class="sub">${g.rounds.length} Runden gespielt</div>
-    </header>
-    <div class="okbox" style="text-align:center">🧙 Gewinner: <b>${winners.map(esc).join(", ")}</b> mit ${max} Punkten</div>
-    <div class="card">${rankRows(tot)}</div>
-    <div class="bottom"><div class="inner">
-      <button class="btn block" data-a="table" data-from="final" style="margin-bottom:10px">📊 Punktetafel ansehen</button>
-      <button class="btn ghost block" data-a="backfromfinal" style="margin-bottom:10px">← Zurück zur letzten Runde</button>
-      <button class="btn ghost block" data-a="menu">Zum Hauptmenü</button>
-    </div></div>`;
-  window.scrollTo(0, 0);
+  App.render(
+    ui.topbar(null, { menu: true }) +
+    ui.header("ENDERGEBNIS", `${g.rounds.length} Runden gespielt`, "md") +
+    ui.okbox(`🧙 Gewinner: <b>${winners.map(esc).join(", ")}</b> mit ${max} Punkten`, true) +
+    ui.card("", nameRanking(tot)) +
+    ui.bottom(
+      ui.btn("📊 Punktetafel ansehen", { block: true, action: "table" }) +
+      ui.stepBack("Zur letzten Runde", { block: true, action: "backfromfinal" }),
+      "col")
+  );
 }
 
 /* ---------- Events ---------- */
-document.addEventListener("submit", e => {
-  if(e.target.id !== "addForm") return;
-  e.preventDefault();
-  const inp = document.getElementById("nameInput");
-  const name = inp.value.trim();
-  if(!name) return;
-  if(S.players.some(p => p.toLowerCase() === name.toLowerCase())) return toast("Name gibt es schon", "info");
-  if(S.players.length >= 6) return toast("Maximal 6 Spieler", "info");
-  S.players.push(name);
-  save(); renderHome();
-  document.getElementById("nameInput").focus();
-});
-
-/* Sicherheitsabfrage: zweiter Tipp bestätigt, nach 4 Sekunden springt der Button zurück */
-let armedEl = null, armedT = null, armedTxt = "";
-function disarm(){
-  clearTimeout(armedT);
-  if(armedEl && armedEl.isConnected) armedEl.textContent = armedTxt;
-  armedEl = null;
-}
-function confirmTap(el){
-  if(armedEl === el){ clearTimeout(armedT); armedEl = null; return true; }
-  disarm();
-  armedEl = el; armedTxt = el.textContent;
-  el.textContent = "Sicher? Nochmal tippen";
-  armedT = setTimeout(disarm, 4000);
-  return false;
-}
-
-document.addEventListener("click", e => {
-  const el = e.target.closest("[data-a]");
-  if(!el) return;
-  const a = el.dataset.a;
-  const i = Number(el.dataset.i), r = Number(el.dataset.r);
-  if(a !== "abort" && a !== "clearall") disarm();
-  switch(a){
-    case "del": S.players.splice(i, 1); save(); renderHome(); break;
-    case "house": S.house = !S.house; save(); renderHome(); break;
-    case "rules": S.screen = "rules"; render(); break;
-    case "menu": S.screen = "home"; render(); window.scrollTo(0, 0); break;
+App.on((a, el, i) => {
+  const r = Number(el.dataset.r);
+  switch (a) {
+    case "house": S.house = !S.house; save(); App.refresh(); break;
     case "start": newGame(); break;
-    case "resume": S.screen = "round"; render(); window.scrollTo(0, 0); break;
-    case "gotofinal": S.screen = "final"; render(); break;
+    case "resume": App.go("round"); break;
+    case "gotofinal": App.go("final"); break;
     case "abort":
-      if(confirmTap(el)){ S.game = null; save(); renderHome(); toast("Spiel abgebrochen", "info"); }
-      break;
-    case "clearall":
-      if(confirmTap(el)){ S.players = []; S.game = null; save(); renderHome(); toast("Alles gelöscht", "info"); }
+      S.game = null; save(); App.go("home"); App.toast("Spiel abgebrochen");
       break;
     case "stp": {
-      const g = S.game, rd = g.rounds[r], max = r + 1, f = el.dataset.f, d = Number(el.dataset.d);
+      const rd = S.game.rounds[r], max = r + 1, f = el.dataset.f, d = Number(el.dataset.d);
       rd[f][i] = Math.max(0, Math.min(max, rd[f][i] + d));
-      save(); render(); break;
+      save(); App.refresh(); break;
     }
     case "tostiche": {
       const rd = S.game.rounds[S.game.cur];
-      if(S.house && sum(rd.bids) === S.game.cur + 1) return toast("Hausregel: Summe der Ansagen darf nicht der Stichzahl entsprechen", "info");
-      S.game.phase = "won"; save(); render(); window.scrollTo(0, 0); break;
+      if (S.house && sum(rd.bids) === S.game.cur + 1) return App.toast("Hausregel: Summe der Ansagen darf nicht der Stichzahl entsprechen");
+      S.game.phase = "won"; save(); App.go("round"); break;
     }
-    case "backtobid": S.game.phase = "bid"; save(); render(); break;
+    case "backtobid": S.game.phase = "bid"; save(); App.go("round"); break;
     case "prevround":
-      if(S.game.cur > 0){ S.game.cur--; S.game.phase = "summary"; save(); render(); window.scrollTo(0, 0); }
+      if (S.game.cur > 0) { S.game.cur--; S.game.phase = "summary"; save(); App.go("round"); }
       break;
     case "backfromfinal":
       S.game.finished = false; S.game.cur = S.game.rounds.length - 1; S.game.phase = "summary";
-      S.screen = "round"; save(); render(); window.scrollTo(0, 0); break;
+      save(); App.go("round"); break;
     case "evaluate": {
       const rd = S.game.rounds[S.game.cur];
-      if(sum(rd.won) !== S.game.cur + 1) return toast("Stiche müssen der Kartenzahl entsprechen", "info");
-      rd.done = true; S.game.phase = "summary"; save(); render(); window.scrollTo(0, 0); break;
+      if (sum(rd.won) !== S.game.cur + 1) return App.toast("Stiche müssen der Kartenzahl entsprechen");
+      rd.done = true; S.game.phase = "summary"; save(); App.go("round"); break;
     }
-    case "backtowon": S.game.rounds[S.game.cur].done = false; S.game.phase = "won"; save(); render(); break;
-    case "nextround": S.game.cur++; S.game.phase = "bid"; save(); render(); window.scrollTo(0, 0); break;
-    case "finish": S.game.finished = true; S.screen = "final"; save(); render(); break;
+    case "backtowon": S.game.rounds[S.game.cur].done = false; S.game.phase = "won"; save(); App.go("round"); break;
+    case "nextround": S.game.cur++; S.game.phase = "bid"; save(); App.go("round"); break;
+    case "finish": S.game.finished = true; save(); App.go("final"); break;
     case "table":
-      S.from = el.dataset.from || S.from || "round";
-      S.screen = "table"; render(); break;
-    case "tableback": S.screen = S.from === "final" ? "final" : (gameActive() ? "round" : "final"); render(); window.scrollTo(0, 0); break;
-    case "edit": S.edit = r; S.screen = "edit"; render(); break;
+      if (App.screen !== "edit") S.from = App.screen;
+      App.go("table"); break;
+    case "tableback": App.go(S.from); break;
+    case "edit": S.edit = r; App.go("edit"); break;
   }
 });
 
-/* Beim Laden einmal speichern, damit der Speicherstatus sofort stimmt */
-save();
-render();
+/* ---------- Start ---------- */
+App.screens({ home: renderHome, rules: renderRules, round: renderRound, table: renderTable, edit: renderEdit, final: renderFinal }, { home: "home" });
+save(); // einmal speichern, damit der Speicherstatus sofort stimmt
+App.go("home");
 </script>
 </body>
 </html>

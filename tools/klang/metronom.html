@@ -7,206 +7,165 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Metronom</title>
-<script src="/toast.js"></script>
+<script src="/common.js"></script>
 <style>
-:root{
-  --bg:#0b0d12; --card:#151922; --card2:#1c2230; --line:#262d3d;
-  --text:#f2f4f8; --muted:#8c95a8;
-  --a1:#ff3b6b; --a2:#7c5cff;
-  --grad:linear-gradient(135deg,var(--a1),var(--a2));
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--bg);color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
-body{min-height:100vh;
-  background:
-    radial-gradient(600px 300px at 10% -5%,rgba(255,59,107,.18),transparent 60%),
-    radial-gradient(600px 300px at 100% 0%,rgba(124,92,255,.2),transparent 60%),
-    var(--bg);
-  background-attachment:fixed;touch-action:manipulation;overscroll-behavior-y:contain}
-#app{max-width:480px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 110px);}
-header{text-align:center;margin-bottom:14px}
-.logo{font-size:30px;font-weight:900;letter-spacing:3px;
-  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
-.sub{color:var(--muted);font-size:13px;margin-top:2px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px;
-  box-shadow:0 10px 30px rgba(0,0,0,.35)}
-.card h2{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:700}
-.center{text-align:center}
-.row{display:flex;align-items:center;gap:10px}
-.grow{flex:1;min-width:0}
-.nav{margin-bottom:14px}
-button{font:inherit;color:inherit;border:0;cursor:pointer;-webkit-user-select:none;user-select:none;touch-action:manipulation}
-a{color:inherit;text-decoration:none}
-.btn{display:inline-block;text-align:center;background:var(--grad);color:#fff;font-weight:700;border-radius:14px;padding:14px 18px;font-size:16px;
-  transition:transform .1s,opacity .2s}
-.btn:active{transform:scale(.97)}
-.btn.block{width:100%}
-.btn.ghost{background:var(--card2);border:1px solid var(--line);color:var(--text)}
-.btn.stop{background:linear-gradient(135deg,#ff3b6b,#c9162f)}
-.btn.small{padding:10px 14px;font-size:15px;border-radius:12px}
-.bottom{position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(env(safe-area-inset-bottom) + 14px);
-  background:linear-gradient(to top,var(--bg) 60%,transparent);z-index:10}
-.bottom .inner{max-width:480px;margin:0 auto;display:flex;gap:10px}
-.bottom .inner .btn{flex:1}
-.hint{color:var(--muted);font-size:12px;text-align:center;margin-top:10px;line-height:1.4}
-.muted{color:var(--muted)}
+.tc{text-align:center}
+.mt{margin-top:var(--sp-14)}
+.mt-s{margin-top:var(--sp-12)}
 
 /* große Zahl */
-.num{font-size:84px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.05}
-.unit{color:var(--muted);font-size:14px;font-weight:600;margin-top:2px}
-.num.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.bignum{font-size:84px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.05;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.unit{color:var(--muted);font-size:var(--fs-text);font-weight:600;margin-top:2px}
+.btn.small{padding:var(--sp-10) var(--sp-14);font-size:var(--fs-base);border-radius:var(--r-small)}
 
 /* Schieberegler */
-input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:10px;border-radius:99px;
-  background:var(--card2);border:1px solid var(--line);outline:none;margin:16px 0 4px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:10px;border-radius:var(--r-pill);
+  background:var(--card2);border:1px solid var(--line);outline:none;margin:var(--sp-16) 0 var(--sp-4)}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;
   background:var(--grad);border:0;box-shadow:0 2px 10px rgba(0,0,0,.5)}
 input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;background:var(--a1);border:0}
 
 /* Taktpunkte */
-.dots{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:6px 0 14px;min-height:30px}
-.dot{width:24px;height:24px;border-radius:50%;background:var(--card2);border:1px solid var(--line);transition:transform .08s,background .08s}
+.dots{display:flex;flex-wrap:wrap;gap:var(--sp-10);justify-content:center;margin:var(--sp-6) 0 var(--sp-14);min-height:30px}
+.dot{width:24px;height:24px;border-radius:50%;background:var(--card2);border:1px solid var(--line);
+  transition:transform .08s,background .08s}
 .dot.on{background:var(--grad);transform:scale(1.3)}
-.dot.first.on{background:linear-gradient(135deg,#1fcf8a,#16a0c9)}
+.dot.first.on{background:var(--grad-ok)}
 
-/* Einstellungen (Toggle) */
-.setting{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0}
-.setting b{display:block;font-size:15px}
-.setting span{color:var(--muted);font-size:12px}
-.switch{width:54px;height:32px;border-radius:99px;background:var(--card2);border:1px solid var(--line);
-  position:relative;flex:none;transition:background .25s}
-.switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;
-  background:#fff;transition:transform .25s}
-.switch.on{background:var(--grad);border-color:transparent}
-.switch.on::after{transform:translateX(22px)}
-
-@media (max-width:360px){.num{font-size:64px}}
+@media (max-width:360px){.bignum{font-size:64px}}
+@media (prefers-reduced-motion:reduce){.dot{transition:none}}
 </style>
 </head>
 <body>
-<div id="app">
-  <div class="row nav">
-    <a class="btn ghost grow" href="/index.html">⬅️ Home</a>
-    <a class="btn ghost grow" href="../klang.html">🎵 Klang-Tools</a>
-  </div>
-  <header>
-    <div class="logo">METRONOM</div>
-    <div class="sub">Gleichmäßiger Takt für jedes Tempo</div>
-  </header>
-
-  <div class="card center">
-    <h2>Tempo</h2>
-    <div class="num grad" id="bpm">100</div>
-    <div class="unit">BPM · <span id="tname">Moderato</span></div>
-    <div class="row" style="margin-top:14px">
-      <button class="btn ghost grow small" data-d="-5">−5</button>
-      <button class="btn ghost grow small" data-d="-1">−1</button>
-      <button class="btn ghost grow small" data-d="1">+1</button>
-      <button class="btn ghost grow small" data-d="5">+5</button>
-    </div>
-    <input type="range" id="slider" min="20" max="300" value="100" aria-label="Tempo">
-    <button class="btn ghost block" id="tap" style="margin-top:12px">👆 Tempo antippen</button>
-  </div>
-
-  <div class="card center">
-    <h2>Takt</h2>
-    <div class="dots" id="dots"></div>
-    <div class="row">
-      <button class="btn ghost small" id="bm">−</button>
-      <div class="grow"><b id="bn" style="font-size:22px">4</b><div class="muted" style="font-size:12px">Schläge pro Takt</div></div>
-      <button class="btn ghost small" id="bp">+</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Lautstärke</h2>
-    <div class="setting">
-      <div><b>Lauter</b><span id="voltxt">Aktuell 50 %</span></div>
-      <button class="switch" id="loud" role="switch" aria-checked="false" aria-label="Lautstärke erhöhen"></button>
-    </div>
-    <div class="hint">Normal 50 % · eingeschaltet 85 %. Der erste Schlag jedes Takts klingt höher.</div>
-  </div>
-
-  <div class="card">
-    <h2>Speicher</h2>
-    <div class="row">
-      <button class="btn ghost grow" id="clear">Gespeicherte Daten löschen</button>
-    </div>
-    <div class="hint" id="storetxt"></div>
-  </div>
-
-  <div class="bottom"><div class="inner">
-    <button class="btn" id="go">▶ Start</button>
-  </div></div>
-</div>
+<div id="app"></div>
 
 <script>
-const $ = id => document.getElementById(id);
+const { ui } = App;
+
 const KEY = "klang_metronom";
 const DEF = { bpm: 100, beats: 4, loud: false };
 const VOL_NORMAL = 0.5, VOL_LOUD = 0.85;
 
 /* Das Tempo startet immer bei 100 BPM und wird nicht gespeichert */
+const st = App.store.create(KEY, {
+  defaults: { beats: DEF.beats, loud: DEF.loud },
+  validate: d => d && typeof d === "object"
+});
+
 let bpm = DEF.bpm, beats = DEF.beats, loud = DEF.loud;
-let running = false, ctx = null, nextTime = 0, beat = 0, timer = null, raf = null, wake = null;
-let storageOk = true;
+let running = false, ctx = null, nextTime = 0, beat = 0, timer = null, raf = null;
 const queue = [];
+
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const vol = () => loud ? VOL_LOUD : VOL_NORMAL;
 
-try{
-  const d = JSON.parse(localStorage.getItem(KEY) || "{}");
-  if(d.beats) beats = clamp(Number(d.beats) || DEF.beats, 1, 12);
+App.store.check();
+{
+  const d = st.load();
+  beats = clamp(Number(d.beats) || DEF.beats, 1, 12);
   loud = d.loud === true;
-}catch(e){}
+}
+const save = () => st.save({ beats, loud });
 
-const save = () => {
-  try{ localStorage.setItem(KEY, JSON.stringify({ beats, loud })); storageOk = true; }
-  catch(e){ storageOk = false; }
-  renderStore();
-};
-
-function tempoName(b){
+function tempoName(b) {
   return b < 60 ? "Largo" : b < 76 ? "Adagio" : b < 108 ? "Andante" : b < 120 ? "Moderato"
-       : b < 156 ? "Allegro" : b < 176 ? "Vivace" : "Presto";
+    : b < 156 ? "Allegro" : b < 176 ? "Vivace" : "Presto";
 }
-function renderDots(){
-  $("dots").innerHTML = Array.from({length: beats}, (_, i) => `<div class="dot ${i === 0 ? "first" : ""}"></div>`).join("");
-  $("bn").textContent = beats;
+
+/* ---------- Screens ---------- */
+function renderHome() {
+  const dots = Array.from({ length: beats }, (_, i) =>
+    `<div class="dot ${i === 0 ? "first" : ""}"></div>`).join("");
+
+  const tempo = ui.card("Tempo", `<div class="tc">
+      <div class="bignum" id="bpm">${bpm}</div>
+      <div class="unit">BPM · <span id="tname">${tempoName(bpm)}</span></div>
+      <div class="row mt">
+        ${[-5, -1, 1, 5].map(d => ui.btn(App.fmt.signed(d).replace("-", "−"),
+          { kind: "ghost", grow: true, action: "bpm", i: d, cls: "small" })).join("")}
+      </div>
+      <input type="range" id="slider" min="20" max="300" value="${bpm}" aria-label="Tempo">
+      <div class="mt-s">${ui.btn("👆 Tempo antippen", { kind: "ghost", block: true, action: "tap" })}</div>
+    </div>`);
+
+  const takt = ui.card("Takt", `
+      <div class="dots">${dots}</div>
+      <div class="setting">
+        <div><b>Schläge pro Takt</b><span>1 bis 12</span></div>
+        ${ui.stepper(beats, { dec: "beats-dec", inc: "beats-inc" })}
+      </div>
+      ${ui.hint("Der erste Schlag jedes Takts klingt höher.")}`);
+
+  const volume = ui.settings([{
+    type: "switch",
+    title: "Lauter",
+    desc: "Aktuell " + Math.round(vol() * 100) + " % · normal 50 %, eingeschaltet 85 %",
+    on: loud,
+    action: "loud",
+    label: "Lautstärke erhöhen"
+  }], "Lautstärke");
+
+  const storage = ui.storageCard([{
+    kind: "clearAll",
+    run: () => {
+      st.remove();
+      bpm = DEF.bpm; beats = DEF.beats; loud = DEF.loud;
+      if (beat >= beats) beat = 0;
+    }
+  }]);
+
+  const bar = ui.bottom(ui.btn(running ? "■ Stopp" : "▶ Start",
+    { action: "toggle", kind: running ? "bad" : "", big: true }));
+
+  App.render(
+    ui.topbar([{ label: "🎵 Klang-Tools", href: "../klang.html" }], { info: true }) +
+    ui.header("METRONOM", "Gleichmäßiger Takt für jedes Tempo") +
+    tempo + takt + volume + storage + bar
+  );
 }
-function renderTempo(){
-  $("bpm").textContent = bpm;
-  $("tname").textContent = tempoName(bpm);
-  $("slider").value = bpm;
+
+function renderRules() {
+  App.render(ui.rules({
+    title: "METRONOM",
+    sub: "So funktioniert es",
+    sections: [
+      { h: "🥁 Tempo", p: "Stelle das Tempo mit den Tasten, dem Regler oder durch Antippen ein (20 bis 300 BPM)." },
+      { h: "👆 Tempo antippen", p: "Tippe mehrmals im gewünschten Takt auf den Button. Aus den letzten Tippern wird das Tempo berechnet." },
+      { h: "🎼 Takt", p: "Wähle 1 bis 12 Schläge pro Takt. Der **erste Schlag** jedes Takts klingt höher." },
+      { h: "💾 Speicher", p: "Gespeichert werden Schläge pro Takt und Lautstärke, nur lokal auf diesem Gerät. Das Tempo startet immer bei 100 BPM." }
+    ]
+  }));
 }
-function renderLoud(){
-  $("loud").classList.toggle("on", loud);
-  $("loud").setAttribute("aria-checked", String(loud));
-  $("voltxt").textContent = "Aktuell " + Math.round(vol() * 100) + " %";
+
+/* ---------- Anzeige ohne Neuaufbau (wichtig beim Ziehen des Reglers) ---------- */
+function setBpm(v) {
+  bpm = clamp(Math.round(v), 20, 300);
+  const b = document.getElementById("bpm");
+  if (!b) return;
+  b.textContent = bpm;
+  document.getElementById("tname").textContent = tempoName(bpm);
+  document.getElementById("slider").value = bpm;
 }
-function renderStore(){
-  $("storetxt").textContent = storageOk
-    ? "💾 Gespeichert werden Schläge pro Takt und Lautstärke, nur lokal auf diesem Gerät. Das Tempo startet immer bei 100 BPM."
-    : "⚠️ Speichern nicht möglich (nur bis zum Neuladen)";
-}
-function setBpm(v){ bpm = clamp(Math.round(v), 20, 300); renderTempo(); }
-function stepBpm(d){
+
+function stepBpm(d) {
   const t = bpm + d;
-  if(t > 300) toast("Maximum erreicht: 300 BPM", "warn", 2000);
-  else if(t < 20) toast("Minimum erreicht: 20 BPM", "warn", 2000);
+  if (t > 300) App.toast("Maximum erreicht: 300 BPM", "warn", 2000);
+  else if (t < 20) App.toast("Minimum erreicht: 20 BPM", "warn", 2000);
   setBpm(t);
 }
-function setBeats(v){
-  if(v > 12){ toast("Maximal 12 Schläge pro Takt", "warn", 2000); return; }
-  if(v < 1){ toast("Mindestens 1 Schlag pro Takt", "warn", 2000); return; }
+
+function setBeats(v) {
+  if (v > 12) { App.toast("Maximal 12 Schläge pro Takt", "warn", 2000); return; }
+  if (v < 1) { App.toast("Mindestens 1 Schlag pro Takt", "warn", 2000); return; }
   beats = v;
-  if(beat >= beats) beat = 0;
-  renderDots(); save();
+  if (beat >= beats) beat = 0;
+  save();
+  App.refresh();
 }
 
 /* ---------- Klang ---------- */
-function click(time, accent){
+function click(time, accent) {
   const osc = ctx.createOscillator(), g = ctx.createGain();
   osc.type = "sine";
   osc.frequency.value = accent ? 1600 : 1000;
@@ -217,107 +176,91 @@ function click(time, accent){
   osc.connect(g); g.connect(ctx.destination);
   osc.start(time); osc.stop(time + 0.09);
 }
-function scheduler(){
-  while(nextTime < ctx.currentTime + 0.12){
+
+function scheduler() {
+  while (nextTime < ctx.currentTime + 0.12) {
     click(nextTime, beat === 0);
-    queue.push({t: nextTime, b: beat});
+    queue.push({ t: nextTime, b: beat });
     nextTime += 60 / bpm;
     beat = (beat + 1) % beats;
   }
 }
-function flash(b){
+
+function flash(b) {
   const ds = document.querySelectorAll(".dot");
   ds.forEach(d => d.classList.remove("on"));
-  if(ds[b]){
+  if (ds[b]) {
     ds[b].classList.add("on");
     setTimeout(() => ds[b] && ds[b].classList.remove("on"), 110);
   }
 }
-function draw(){
-  if(!running) return;
-  while(queue.length && queue[0].t <= ctx.currentTime){ flash(queue.shift().b); }
+
+function draw() {
+  if (!running) return;
+  while (queue.length && queue[0].t <= ctx.currentTime) flash(queue.shift().b);
   raf = requestAnimationFrame(draw);
 }
 
-/* ---------- Start / Stop ---------- */
-async function requestWake(){
-  try{ if("wakeLock" in navigator && !wake && !document.hidden) wake = await navigator.wakeLock.request("screen"); }catch(e){}
-}
-function releaseWake(){ try{ if(wake){ wake.release(); wake = null; } }catch(e){} }
-
-async function start(){
-  try{
-    if(!ctx){ const AC = window.AudioContext || window.webkitAudioContext; ctx = new AC(); }
+/* ---------- Start / Stopp ---------- */
+async function start() {
+  try {
+    if (!ctx) { const AC = window.AudioContext || window.webkitAudioContext; ctx = new AC(); }
     await ctx.resume();
-  }catch(e){ toast("Audio wird von diesem Browser nicht unterstützt", "warn", 4000); return; }
+  } catch (e) {
+    App.toast("Audio wird von diesem Browser nicht unterstützt", "warn", 4000);
+    return;
+  }
   running = true; beat = 0; queue.length = 0;
   nextTime = ctx.currentTime + 0.08;
   scheduler();
   timer = setInterval(scheduler, 25);
   raf = requestAnimationFrame(draw);
-  requestWake();
-  $("go").textContent = "■ Stopp";
-  $("go").classList.add("stop");
-  toast("Metronom gestartet · " + bpm + " BPM", "success", 1800);
+  App.wake.on();
+  App.refresh();
+  App.toast("Metronom gestartet · " + bpm + " BPM", "success", 1800);
 }
-function stop(){
+
+function stop() {
   running = false;
   clearInterval(timer); timer = null;
-  if(raf){ cancelAnimationFrame(raf); raf = null; }
+  if (raf) { cancelAnimationFrame(raf); raf = null; }
   queue.length = 0;
-  document.querySelectorAll(".dot").forEach(d => d.classList.remove("on"));
-  releaseWake();
-  $("go").textContent = "▶ Start";
-  $("go").classList.remove("stop");
-  toast("Metronom gestoppt", "info", 1500);
+  App.wake.off();
+  App.refresh();
+  App.toast("Metronom gestoppt", "info", 1500);
 }
 
-/* ---------- Tap-Tempo ---------- */
+/* ---------- Tempo antippen ---------- */
 let taps = [];
-$("tap").addEventListener("click", () => {
+function tapTempo() {
   const now = performance.now();
-  if(taps.length && now - taps[taps.length - 1] > 2000) taps = [];
+  if (taps.length && now - taps[taps.length - 1] > 2000) taps = [];
   taps.push(now);
-  if(taps.length > 6) taps.shift();
-  if(taps.length === 1){ toast("Weiter im Takt antippen …", "info", 1800); return; }
+  if (taps.length > 6) taps.shift();
+  if (taps.length === 1) { App.toast("Weiter im Takt antippen …", "info", 1800); return; }
   const gaps = [];
-  for(let i = 1; i < taps.length; i++) gaps.push(taps[i] - taps[i - 1]);
-  const avg = gaps.reduce((a, b) => a + b, 0) / gaps.length;
-  setBpm(60000 / avg);
-});
-
-/* ---------- Speicher: Sicherheitsabfrage (zweiter Tipp bestätigt) ---------- */
-let armed = false, armedT = null;
-const CLEAR_TXT = "Gespeicherte Daten löschen";
-function disarm(){
-  clearTimeout(armedT); armed = false;
-  $("clear").textContent = CLEAR_TXT;
+  for (let i = 1; i < taps.length; i++) gaps.push(taps[i] - taps[i - 1]);
+  setBpm(60000 / (gaps.reduce((a, b) => a + b, 0) / gaps.length));
 }
-$("clear").addEventListener("click", () => {
-  if(!armed){
-    armed = true;
-    $("clear").textContent = "Sicher? Nochmal tippen";
-    armedT = setTimeout(disarm, 4000);
-    return;
+
+/* ---------- Ereignisse ---------- */
+App.on((a, el, i) => {
+  switch (a) {
+    case "bpm": stepBpm(i); return true;
+    case "tap": tapTempo(); return true;
+    case "beats-dec": setBeats(beats - 1); return true;
+    case "beats-inc": setBeats(beats + 1); return true;
+    case "loud": loud = !loud; save(); App.refresh(); return true;
+    case "toggle": running ? stop() : start(); return true;
   }
-  disarm();
-  try{ localStorage.removeItem(KEY); }catch(e){}
-  bpm = DEF.bpm; beats = DEF.beats; loud = DEF.loud;
-  if(beat >= beats) beat = 0;
-  renderTempo(); renderDots(); renderLoud(); renderStore();
-  toast("Gespeicherte Daten gelöscht", "info", 2000);
 });
 
-/* ---------- Events ---------- */
-document.querySelectorAll("[data-d]").forEach(b => b.addEventListener("click", () => stepBpm(Number(b.dataset.d))));
-$("slider").addEventListener("input", e => setBpm(Number(e.target.value)));
-$("bm").addEventListener("click", () => setBeats(beats - 1));
-$("bp").addEventListener("click", () => setBeats(beats + 1));
-$("loud").addEventListener("click", () => { loud = !loud; renderLoud(); save(); });
-$("go").addEventListener("click", () => running ? stop() : start());
-document.addEventListener("visibilitychange", () => { if(!document.hidden && running) requestWake(); });
+document.addEventListener("input", e => {
+  if (e.target.id === "slider") setBpm(Number(e.target.value));
+});
 
-renderDots(); renderTempo(); renderLoud(); renderStore();
+App.screens({ home: renderHome, rules: renderRules });
+App.go("home");
 </script>
 </body>
 </html>

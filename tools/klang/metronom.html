@@ -70,6 +70,17 @@ input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;bac
 .dot.on{background:var(--grad);transform:scale(1.3)}
 .dot.first.on{background:linear-gradient(135deg,#1fcf8a,#16a0c9)}
 
+/* Einstellungen (Toggle) */
+.setting{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0}
+.setting b{display:block;font-size:15px}
+.setting span{color:var(--muted);font-size:12px}
+.switch{width:54px;height:32px;border-radius:99px;background:var(--card2);border:1px solid var(--line);
+  position:relative;flex:none;transition:background .25s}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;
+  background:#fff;transition:transform .25s}
+.switch.on{background:var(--grad);border-color:transparent}
+.switch.on::after{transform:translateX(22px)}
+
 @media (max-width:360px){.num{font-size:64px}}
 </style>
 </head>
@@ -110,8 +121,19 @@ input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;bac
 
   <div class="card">
     <h2>Lautstärke</h2>
-    <input type="range" id="vol" min="0" max="100" value="80" style="margin-top:4px" aria-label="Lautstärke">
-    <div class="hint">Der erste Schlag jedes Takts klingt höher.</div>
+    <div class="setting">
+      <div><b>Lauter</b><span id="voltxt">Aktuell 50 %</span></div>
+      <button class="switch" id="loud" role="switch" aria-checked="false" aria-label="Lautstärke erhöhen"></button>
+    </div>
+    <div class="hint">Normal 50 % · eingeschaltet 85 %. Der erste Schlag jedes Takts klingt höher.</div>
+  </div>
+
+  <div class="card">
+    <h2>Speicher</h2>
+    <div class="row">
+      <button class="btn ghost grow" id="clear">Gespeicherte Daten löschen</button>
+    </div>
+    <div class="hint" id="storetxt"></div>
   </div>
 
   <div class="bottom"><div class="inner">
@@ -122,18 +144,28 @@ input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;bac
 <script>
 const $ = id => document.getElementById(id);
 const KEY = "klang_metronom";
-let bpm = 100, beats = 4, vol = 0.8;
+const DEF = { bpm: 100, beats: 4, loud: false };
+const VOL_NORMAL = 0.5, VOL_LOUD = 0.85;
+
+/* Das Tempo startet immer bei 100 BPM und wird nicht gespeichert */
+let bpm = DEF.bpm, beats = DEF.beats, loud = DEF.loud;
 let running = false, ctx = null, nextTime = 0, beat = 0, timer = null, raf = null, wake = null;
+let storageOk = true;
 const queue = [];
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const vol = () => loud ? VOL_LOUD : VOL_NORMAL;
 
 try{
   const d = JSON.parse(localStorage.getItem(KEY) || "{}");
-  if(d.bpm) bpm = clamp(Number(d.bpm) || 100, 20, 300);
-  if(d.beats) beats = clamp(Number(d.beats) || 4, 1, 12);
-  if(d.vol != null) vol = clamp(Number(d.vol), 0, 1);
+  if(d.beats) beats = clamp(Number(d.beats) || DEF.beats, 1, 12);
+  loud = d.loud === true;
 }catch(e){}
-const save = () => { try{ localStorage.setItem(KEY, JSON.stringify({bpm, beats, vol})); }catch(e){} };
+
+const save = () => {
+  try{ localStorage.setItem(KEY, JSON.stringify({ beats, loud })); storageOk = true; }
+  catch(e){ storageOk = false; }
+  renderStore();
+};
 
 function tempoName(b){
   return b < 60 ? "Largo" : b < 76 ? "Adagio" : b < 108 ? "Andante" : b < 120 ? "Moderato"
@@ -148,7 +180,17 @@ function renderTempo(){
   $("tname").textContent = tempoName(bpm);
   $("slider").value = bpm;
 }
-function setBpm(v){ bpm = clamp(Math.round(v), 20, 300); renderTempo(); save(); }
+function renderLoud(){
+  $("loud").classList.toggle("on", loud);
+  $("loud").setAttribute("aria-checked", String(loud));
+  $("voltxt").textContent = "Aktuell " + Math.round(vol() * 100) + " %";
+}
+function renderStore(){
+  $("storetxt").textContent = storageOk
+    ? "💾 Gespeichert werden Schläge pro Takt und Lautstärke, nur lokal auf diesem Gerät. Das Tempo startet immer bei 100 BPM."
+    : "⚠️ Speichern nicht möglich (nur bis zum Neuladen)";
+}
+function setBpm(v){ bpm = clamp(Math.round(v), 20, 300); renderTempo(); }
 function stepBpm(d){
   const t = bpm + d;
   if(t > 300) toast("Maximum erreicht: 300 BPM", "warn", 2000);
@@ -168,7 +210,7 @@ function click(time, accent){
   const osc = ctx.createOscillator(), g = ctx.createGain();
   osc.type = "sine";
   osc.frequency.value = accent ? 1600 : 1000;
-  const peak = Math.max(0.0002, vol);
+  const peak = Math.max(0.0002, vol());
   g.gain.setValueAtTime(0.0001, time);
   g.gain.exponentialRampToValueAtTime(peak, time + 0.004);
   g.gain.exponentialRampToValueAtTime(0.0001, time + 0.07);
@@ -244,17 +286,38 @@ $("tap").addEventListener("click", () => {
   setBpm(60000 / avg);
 });
 
+/* ---------- Speicher: Sicherheitsabfrage (zweiter Tipp bestätigt) ---------- */
+let armed = false, armedT = null;
+const CLEAR_TXT = "Gespeicherte Daten löschen";
+function disarm(){
+  clearTimeout(armedT); armed = false;
+  $("clear").textContent = CLEAR_TXT;
+}
+$("clear").addEventListener("click", () => {
+  if(!armed){
+    armed = true;
+    $("clear").textContent = "Sicher? Nochmal tippen";
+    armedT = setTimeout(disarm, 4000);
+    return;
+  }
+  disarm();
+  try{ localStorage.removeItem(KEY); }catch(e){}
+  bpm = DEF.bpm; beats = DEF.beats; loud = DEF.loud;
+  if(beat >= beats) beat = 0;
+  renderTempo(); renderDots(); renderLoud(); renderStore();
+  toast("Gespeicherte Daten gelöscht", "info", 2000);
+});
+
 /* ---------- Events ---------- */
 document.querySelectorAll("[data-d]").forEach(b => b.addEventListener("click", () => stepBpm(Number(b.dataset.d))));
 $("slider").addEventListener("input", e => setBpm(Number(e.target.value)));
 $("bm").addEventListener("click", () => setBeats(beats - 1));
 $("bp").addEventListener("click", () => setBeats(beats + 1));
-$("vol").addEventListener("input", e => { vol = Number(e.target.value) / 100; save(); });
+$("loud").addEventListener("click", () => { loud = !loud; renderLoud(); save(); });
 $("go").addEventListener("click", () => running ? stop() : start());
 document.addEventListener("visibilitychange", () => { if(!document.hidden && running) requestWake(); });
 
-$("vol").value = Math.round(vol * 100);
-renderDots(); renderTempo();
+renderDots(); renderTempo(); renderLoud(); renderStore();
 </script>
 </body>
 </html>

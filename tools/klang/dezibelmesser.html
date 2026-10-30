@@ -3,138 +3,67 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#0b0d12">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Dezibelmesser</title>
-<script src="/toast.js"></script>
+<script src="/common.js"></script>
 <style>
-:root{
-  --bg:#0b0d12; --card:#151922; --card2:#1c2230; --line:#262d3d;
-  --text:#f2f4f8; --muted:#8c95a8;
-  --a1:#ff3b6b; --a2:#7c5cff;
-  --grad:linear-gradient(135deg,var(--a1),var(--a2));
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--bg);color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
-body{min-height:100vh;
-  background:
-    radial-gradient(600px 300px at 10% -5%,rgba(255,59,107,.18),transparent 60%),
-    radial-gradient(600px 300px at 100% 0%,rgba(124,92,255,.2),transparent 60%),
-    var(--bg);
-  background-attachment:fixed;touch-action:manipulation;overscroll-behavior-y:contain}
-#app{max-width:480px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 110px);}
-header{text-align:center;margin-bottom:14px}
-.logo{font-size:30px;font-weight:900;letter-spacing:3px;
-  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
-.sub{color:var(--muted);font-size:13px;margin-top:2px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px;
-  box-shadow:0 10px 30px rgba(0,0,0,.35)}
-.card h2{margin:0 0 12px;font-size:13px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-weight:700}
-.center{text-align:center}
-.row{display:flex;align-items:center;gap:10px}
-.grow{flex:1;min-width:0}
-.nav{margin-bottom:14px}
-button{font:inherit;color:inherit;border:0;cursor:pointer;-webkit-user-select:none;user-select:none;touch-action:manipulation}
-a{color:inherit;text-decoration:none}
-.btn{display:inline-block;text-align:center;background:var(--grad);color:#fff;font-weight:700;border-radius:14px;padding:14px 18px;font-size:16px;
-  transition:transform .1s,opacity .2s}
-.btn:active{transform:scale(.97)}
-.btn.block{width:100%}
-.btn.ghost{background:var(--card2);border:1px solid var(--line);color:var(--text)}
-.btn.stop{background:linear-gradient(135deg,#ff3b6b,#c9162f)}
-.btn.small{padding:10px 14px;font-size:15px;border-radius:12px}
-.bottom{position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(env(safe-area-inset-bottom) + 14px);
-  background:linear-gradient(to top,var(--bg) 60%,transparent);z-index:10}
-.bottom .inner{max-width:480px;margin:0 auto;display:flex;gap:10px}
-.bottom .inner .btn{flex:1}
-.hint{color:var(--muted);font-size:12px;text-align:center;margin-top:10px;line-height:1.4}
+/* Nur seitenspezifisches CSS – alles andere kommt aus common.js */
+.tc{text-align:center}
 
 /* große Zahl */
-.num{font-size:84px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.05}
-.unit{color:var(--muted);font-size:14px;font-weight:600;margin-top:2px}
-.num.grad{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.scale{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.dbnum{font-size:84px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.05;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.unit{color:var(--muted);font-size:var(--fs-text);font-weight:600;margin-top:2px}
+.scale{display:flex;justify-content:space-between;color:var(--muted);font-size:var(--fs-xs);font-variant-numeric:tabular-nums}
+
+/* Pegelanzeige */
+.meter{height:14px;border-radius:var(--r-pill);background:linear-gradient(90deg,var(--ok),var(--warn) 60%,var(--a1));
+  position:relative;overflow:hidden;margin:var(--sp-14) 0 var(--sp-4)}
+.meter i{position:absolute;right:0;top:0;bottom:0;width:100%;background:var(--card2);transition:width .1s}
+.cat{font-weight:700;font-size:var(--fs-base);margin-top:var(--sp-10);min-height:1.4em}
+
+/* Messwerte */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-8);text-align:center}
+.stats .v{font-size:var(--fs-logo-md);font-weight:900;font-variant-numeric:tabular-nums}
+.stats .l{color:var(--muted);font-size:var(--fs-hint);font-weight:600}
+canvas.hist{width:100%;height:130px;display:block;border-radius:var(--r-small);background:var(--card2);border:1px solid var(--line)}
 
 /* Schieberegler */
-input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:10px;border-radius:99px;
-  background:var(--card2);border:1px solid var(--line);outline:none;margin:16px 0 4px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:10px;border-radius:var(--r-pill);
+  background:var(--card2);border:1px solid var(--line);outline:none;margin:var(--sp-4) 0}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:30px;height:30px;border-radius:50%;
   background:var(--grad);border:0;box-shadow:0 2px 10px rgba(0,0,0,.5)}
 input[type=range]::-moz-range-thumb{width:30px;height:30px;border-radius:50%;background:var(--a1);border:0}
 
-/* Pegelanzeige */
-.meter{height:14px;border-radius:99px;background:linear-gradient(90deg,#2ee59d,#ffb020 60%,#ff3b6b);position:relative;overflow:hidden;margin:14px 0 4px}
-.meter i{position:absolute;right:0;top:0;bottom:0;width:100%;background:var(--card2);transition:width .1s}
-.cat{font-weight:700;font-size:15px;margin-top:10px;min-height:1.4em}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
-.stats .v{font-size:28px;font-weight:900;font-variant-numeric:tabular-nums}
-.stats .l{color:var(--muted);font-size:12px;font-weight:600}
-canvas.hist{width:100%;height:130px;display:block;border-radius:12px;background:var(--card2);border:1px solid var(--line)}
-
-@media (max-width:360px){.num{font-size:64px}}
+@media (max-width:360px){.dbnum{font-size:64px}}
 @media (prefers-reduced-motion:reduce){.meter i{transition:none}}
 </style>
 </head>
 <body>
-<div id="app">
-  <div class="row nav">
-    <a class="btn ghost grow" href="/index.html">⬅️ Home</a>
-    <a class="btn ghost grow" href="../klang.html">🎵 Klang-Tools</a>
-  </div>
-  <header>
-    <div class="logo">DEZIBELMESSER</div>
-    <div class="sub">Wie laut ist es gerade?</div>
-  </header>
-
-  <div class="card center">
-    <div class="num grad" id="db">–</div>
-    <div class="unit">dB (Richtwert)</div>
-    <div class="meter"><i id="fill"></i></div>
-    <div class="scale"><span>20</span><span>50</span><span>80</span><span>120 dB</span></div>
-    <div class="cat" id="cat">Mikrofon starten, um zu messen</div>
-  </div>
-
-  <div class="card">
-    <h2>Messwerte</h2>
-    <div class="stats">
-      <div><div class="v" id="vmin">–</div><div class="l">Minimum</div></div>
-      <div><div class="v" id="vavg">–</div><div class="l">Durchschnitt</div></div>
-      <div><div class="v" id="vmax">–</div><div class="l">Maximum</div></div>
-    </div>
-    <button class="btn ghost block small" id="reset" style="margin-top:14px">↻ Messwerte zurücksetzen</button>
-  </div>
-
-  <div class="card">
-    <h2>Verlauf · letzte 60 Sekunden</h2>
-    <canvas class="hist" id="hist"></canvas>
-  </div>
-
-  <div class="card">
-    <h2>Kalibrierung · <span id="otxt">+95</span> dB</h2>
-    <input type="range" id="offset" min="70" max="120" value="95" style="margin-top:4px" aria-label="Kalibrierung">
-    <div class="hint">Handy- und Computermikrofone sind nicht geeicht. Der Wert ist nur ein Richtwert. Mit einem Referenzgerät kannst du den Wert hier angleichen.</div>
-  </div>
-
-  <div class="bottom"><div class="inner">
-    <button class="btn" id="go">🎤 Messung starten</button>
-  </div></div>
-</div>
+<div id="app"></div>
 
 <script>
 const $ = id => document.getElementById(id);
-const KEY = "klang_db";
-let offset = 95;
-let ctx = null, analyser = null, src = null, stream = null, buf = null;
-let listening = false, raf = null, wake = null;
-let ps = 1e-9, lastTs = 0, lastShow = 0, lastHist = 0, lastWarn = -1e9, startTs = 0;
-let dbNow = 0, mn = null, mx = null, sumE = 0, cnt = 0;
-const hist = [];
 const HMAX = 120;                       /* 120 Punkte × 0,5 s = 60 s */
+const DEF_OFFSET = 95;
 
-try{ const d = JSON.parse(localStorage.getItem(KEY) || "{}"); if(d.offset) offset = Math.min(120, Math.max(70, Number(d.offset) || 95)); }catch(e){}
-const save = () => { try{ localStorage.setItem(KEY, JSON.stringify({offset})); }catch(e){} };
+/* ---------- Speicher: nur die Kalibrierung ---------- */
+const st = App.store.create("klang_db", {
+  defaults: { offset: DEF_OFFSET },
+  validate: d => d && typeof d === "object" && Number(d.offset) > 0
+});
+App.store.check();
+
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+let offset = clamp(Number(st.load().offset) || DEF_OFFSET, 70, 120);
+
+/* ---------- Zustand ---------- */
+let ctx = null, analyser = null, src = null, stream = null, buf = null;
+let listening = false, raf = null;
+let ps = 1e-9, lastTs = 0, lastShow = 0, lastHist = 0, lastWarn = -1e9, startTs = 0;
+let dbNow = 0, hasValue = false, mn = null, mx = null, sumE = 0, cnt = 0;
+const hist = [];
 
 function category(d){
   if(d < 30) return "🤫 Sehr leise";
@@ -144,26 +73,76 @@ function category(d){
   if(d < 85) return "📢 Sehr laut (Staubsauger, Pausenhof)";
   return "⚠️ Sehr laut – Gehör kann bei Dauer Schaden nehmen";
 }
-const fmt = v => v == null ? "–" : String(Math.round(v));
+const show = v => v == null ? "–" : String(Math.round(v));
+
+/* ---------- Screen ---------- */
+function renderHome(){
+  const ui = App.ui;
+  App.render(
+    ui.topbar([{ label: "🎵 Klang-Tools", href: "../klang.html" }]) +
+    ui.header("DEZIBELMESSER", "Wie laut ist es gerade?", "md") +
+
+    ui.card("",
+      `<div class="dbnum" id="db">–</div>
+       <div class="unit">dB (Richtwert)</div>
+       <div class="meter"><i id="fill"></i></div>
+       <div class="scale"><span>20</span><span>50</span><span>80</span><span>120 dB</span></div>
+       <div class="cat" id="cat">Mikrofon starten, um zu messen</div>`, "tc") +
+
+    ui.card("Messwerte",
+      `<div class="stats">
+         <div><div class="v" id="vmin">–</div><div class="l">Minimum</div></div>
+         <div><div class="v" id="vavg">–</div><div class="l">Durchschnitt</div></div>
+         <div><div class="v" id="vmax">–</div><div class="l">Maximum</div></div>
+       </div>
+       <div style="margin-top:var(--sp-14)">${ui.btn("↻ Messwerte zurücksetzen", { kind: "ghost", block: true, action: "reset" })}</div>`) +
+
+    ui.card("Verlauf · letzte 60 Sekunden", `<canvas class="hist" id="hist"></canvas>`) +
+
+    ui.card("Kalibrierung · +" + offset + " dB",
+      `<input type="range" id="offset" min="70" max="120" value="${offset}" aria-label="Kalibrierung">` +
+      ui.hint("Handy- und Computermikrofone sind nicht geeicht. Der Wert ist nur ein Richtwert. Mit einem Referenzgerät kannst du den Wert hier angleichen."),
+      "calib") +
+
+    ui.storageCard([{
+      kind: "clearAll",
+      run: () => { offset = DEF_OFFSET; st.remove(); }
+    }]) +
+
+    ui.bottom(ui.btn(listening ? "■ Messung stoppen" : "🎤 Messung starten",
+      { block: true, kind: listening ? "bad" : "", action: "toggle" }))
+  );
+  renderMain(); renderStats(); drawHist();
+}
+
+function renderStats(){
+  if(!$("vmin")) return;
+  $("vmin").textContent = show(mn);
+  $("vmax").textContent = show(mx);
+  $("vavg").textContent = cnt ? show(10 * Math.log10(sumE / cnt)) : "–";
+}
+function renderMain(){
+  if(!$("db")) return;
+  if(!hasValue){
+    $("db").textContent = "–";
+    $("fill").style.width = "100%";
+    $("cat").textContent = "Mikrofon starten, um zu messen";
+    return;
+  }
+  const d = Math.max(0, dbNow);
+  $("db").textContent = Math.round(d);
+  $("fill").style.width = (100 - clamp((d - 20) / 100 * 100, 0, 100)) + "%";
+  $("cat").textContent = category(d);
+}
 
 function resetStats(){
   mn = mx = null; sumE = 0; cnt = 0; hist.length = 0; startTs = performance.now();
   renderStats(); drawHist();
 }
-function renderStats(){
-  $("vmin").textContent = fmt(mn);
-  $("vmax").textContent = fmt(mx);
-  $("vavg").textContent = cnt ? fmt(10 * Math.log10(sumE / cnt)) : "–";
-}
-function renderMain(){
-  const d = Math.max(0, dbNow);
-  $("db").textContent = Math.round(d);
-  $("fill").style.width = (100 - Math.min(100, Math.max(0, (d - 20) / 100 * 100))) + "%";
-  $("cat").textContent = category(d);
-}
 
 function drawHist(){
   const cv = $("hist");
+  if(!cv) return;
   const dpr = window.devicePixelRatio || 1;
   const w = cv.clientWidth, h = cv.clientHeight;
   if(!w || !h) return;
@@ -171,7 +150,7 @@ function drawHist(){
   const g = cv.getContext("2d");
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   g.clearRect(0, 0, w, h);
-  const y = d => h - 6 - (Math.min(120, Math.max(20, d)) - 20) / 100 * (h - 12);
+  const y = d => h - 6 - (clamp(d, 20, 120) - 20) / 100 * (h - 12);
   g.font = "10px system-ui,sans-serif"; g.fillStyle = "#8c95a8"; g.strokeStyle = "#262d3d"; g.lineWidth = 1;
   [40, 60, 80, 100].forEach(v => {
     g.beginPath(); g.moveTo(0, y(v)); g.lineTo(w, y(v)); g.stroke();
@@ -188,6 +167,7 @@ function drawHist(){
   g.stroke();
 }
 
+/* ---------- Messschleife ---------- */
 function loop(ts){
   if(!listening) return;
   raf = requestAnimationFrame(loop);
@@ -202,6 +182,7 @@ function loop(ts){
 
   if(ts - lastShow > 100){
     lastShow = ts;
+    hasValue = true;
     renderMain();
     if(performance.now() - startTs > 600){            /* Einschwingphase überspringen */
       const d = Math.max(0, dbNow);
@@ -211,7 +192,7 @@ function loop(ts){
       renderStats();
       if(d >= 85 && ts - lastWarn > 10000){
         lastWarn = ts;
-        toast("⚠️ Über 85 dB – auf Dauer schädlich für das Gehör", "warn", 3500);
+        App.toast("⚠️ Über 85 dB – auf Dauer schädlich für das Gehör", "warn", 3500);
       }
     }
   }
@@ -223,14 +204,10 @@ function loop(ts){
   }
 }
 
-async function requestWake(){
-  try{ if("wakeLock" in navigator && !wake && !document.hidden) wake = await navigator.wakeLock.request("screen"); }catch(e){}
-}
-function releaseWake(){ try{ if(wake){ wake.release(); wake = null; } }catch(e){} }
-
+/* ---------- Start / Stopp ---------- */
 async function start(){
   if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-    toast("Mikrofon wird nicht unterstützt (HTTPS und aktueller Browser nötig)", "warn", 5000);
+    App.toast("Mikrofon wird nicht unterstützt (HTTPS und aktueller Browser nötig)", "warn", 5000);
     return;
   }
   try{
@@ -244,15 +221,14 @@ async function start(){
     analyser.fftSize = 2048;
     buf = new Float32Array(analyser.fftSize);
     src.connect(analyser);
-    listening = true; lastTs = 0; ps = 1e-9; lastWarn = -1e9;
+    listening = true; hasValue = false; lastTs = 0; ps = 1e-9; lastWarn = -1e9;
     resetStats();
     raf = requestAnimationFrame(loop);
-    requestWake();
-    $("go").textContent = "■ Messung stoppen";
-    $("go").classList.add("stop");
-    toast("Messung gestartet", "success", 1800);
+    App.wake.on();
+    App.refresh();
+    App.toast("Messung gestartet", "success", 1800);
   }catch(e){
-    toast("Kein Zugriff auf das Mikrofon. Bitte im Browser erlauben und Seite neu laden.", "warn", 5000);
+    App.toast("Kein Zugriff auf das Mikrofon. Bitte im Browser erlauben und Seite neu laden.", "warn", 5000);
   }
 }
 function stop(){
@@ -261,25 +237,30 @@ function stop(){
   try{ if(src) src.disconnect(); }catch(e){}
   try{ if(stream) stream.getTracks().forEach(t => t.stop()); }catch(e){}
   src = null; stream = null; analyser = null;
-  releaseWake();
-  $("go").textContent = "🎤 Messung starten";
-  $("go").classList.remove("stop");
-  toast("Messung gestoppt", "info", 1500);
+  App.wake.off();
+  App.refresh();
+  App.toast("Messung gestoppt", "info", 1500);
 }
 
-$("go").addEventListener("click", () => listening ? stop() : start());
-$("reset").addEventListener("click", () => { resetStats(); toast("Messwerte zurückgesetzt", "info", 1500); });
-$("offset").addEventListener("input", e => {
-  offset = Number(e.target.value);
-  $("otxt").textContent = "+" + offset;
-  save();
+/* ---------- Events ---------- */
+App.on(a => {
+  if(a === "toggle"){ listening ? stop() : start(); return true; }
+  if(a === "reset"){ resetStats(); App.toast("Messwerte zurückgesetzt", "info", 1500); return true; }
 });
-window.addEventListener("resize", drawHist);
-document.addEventListener("visibilitychange", () => { if(!document.hidden && listening) requestWake(); });
 
-$("offset").value = offset; $("otxt").textContent = "+" + offset;
-$("fill").style.width = "100%";
-drawHist();
+document.addEventListener("input", e => {
+  if(e.target.id !== "offset") return;
+  offset = Number(e.target.value);
+  const h = document.querySelector(".calib h2");
+  if(h) h.textContent = "Kalibrierung · +" + offset + " dB";
+  st.save({ offset });
+});
+
+window.addEventListener("resize", drawHist);
+
+/* ---------- Start ---------- */
+App.screens({ home: renderHome });
+App.go("home");
 </script>
 </body>
 </html>

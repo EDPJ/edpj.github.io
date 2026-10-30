@@ -21,6 +21,36 @@
      App.screens({ home: renderHome, rules: renderRules, play: renderPlay });
      App.on((a, el, i) => { switch (a) { case "start": ...; } });
      App.go("home");
+
+   --------------------------------------------------------------------------
+   REGEL FÜR ZURÜCK-BUTTONS (gilt für alle Seiten, keine eigenen Varianten)
+
+   Es gibt genau drei Arten. Beschriftungen kommen aus App.text, nicht frei getippt.
+
+   1. Text-Zurück oben:  App.ui.back(action, label?)
+      Aussehen: grauer Text-Button "← Zurück".
+      Gilt für Unterscreens (Anleitung, Punktetafel, Korrigieren).
+      Führt genau EINE Ebene zurück.
+      Anleitung: Aktion "closerules" (zurück dorthin, woher man kam).
+      Andere Unterscreens: Aktion des Screens, aus dem man kam.
+      Steht ein Ziel im Label ("Zur Punktetafel"), kommt die Beschriftung
+      aus der Seite: App.ui.back("scoreboard", "Zur Punktetafel").
+
+   2. Menü oben:  App.ui.topbar(extra, { menu: true })
+      Aussehen: Ghost-Button "← Menü" (Aktion "menu", springt zum Startscreen).
+      Gilt für laufende Spiele und Übungen.
+      Dort steht KEIN Home-Button, das Menü ist der Rückweg.
+      Auf Menü- und Startscreens steht stattdessen "🏠 Home" (Standard von topbar).
+      Nie eigene Namen wie "Zur Übersicht" verwenden.
+
+   3. Schritt zurück unten:  App.ui.stepBack(label?, opts)
+      Aussehen: Ghost-Button in der unteren Leiste, immer "← " + Verb/Ziel.
+      Gilt für Schritte innerhalb eines Ablaufs.
+      Beispiele: "← Vorherige Übung", "← Ansagen ändern", "← Stiche korrigieren".
+      Ohne Label steht dort App.text.prev ("← Vorherige").
+      "← Zurück" allein steht NUR oben (Regel 1), nie in der unteren Leiste.
+
+   Der Pfeil "←" wird automatisch ergänzt, wenn er im Label fehlt.
    ========================================================================== */
 (function () {
   "use strict";
@@ -367,11 +397,12 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
   };
 
   const TEXT = {
-    home: "⬅️ Home",
+    home: "🏠 Home",
     info: "📖 Info",
     rulesTitle: "INFO",
-    back: "← Zurück",
-    menu: "← Menü",
+    back: "← Zurück",          /* Regel 1: Text-Zurück oben (eine Ebene zurück) */
+    menu: "← Menü",            /* Regel 2: Menü oben in Spielen und Übungen */
+    prev: "← Vorherige",       /* Regel 3: Standard für Schritt zurück unten */
     understood: "Verstanden",
     confirm: "Sicher? Nochmal tippen",
     storageTitle: "Speicher",
@@ -408,6 +439,9 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
 
   /* Maskiert alles, **Text** wird fett */
   const rich = s => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+
+  /* Setzt "← " vor das Label, falls der Pfeil fehlt (für alle Zurück-Buttons) */
+  const arrow = s => (/^\s*←/.test(s) ? String(s).trim() : "← " + String(s).trim());
 
   /* Kopie, gemischt */
   const shuffle = a => shuffleInPlace(a.slice());
@@ -822,12 +856,17 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
         (opts.disabled ? " disabled" : "") + `>${inner}</button>`;
     },
 
-    /* Kopfzeile. extra: [{label, action | href}] nach dem Home-Button.
-       opts: { home:false } ohne Home-Button, { info:true } mit "📖 Info" am Ende. */
+    /* Kopfzeile. extra: [{label, action | href}] nach dem Home- bzw. Menü-Button.
+       opts:
+         { menu:true }   Regel 2: "← Menü" als erster Button, KEIN Home-Button
+                         (für laufende Spiele und Übungen)
+         { home:false }  ohne Home-Button
+         { info:true }   "📖 Info" als letzter Button */
     topbar(extra, opts) {
       opts = opts || {};
       const list = [];
-      if (opts.home !== false) list.push({ label: TEXT.home, href: CFG.homeUrl });
+      if (opts.menu) list.push({ label: arrow(TEXT.menu), action: "menu" });
+      else if (opts.home !== false) list.push({ label: TEXT.home, href: CFG.homeUrl });
       (extra || []).forEach(b => list.push(b));
       if (opts.info) list.push({ label: TEXT.info, action: "rules" });
       return `<div class="row topbar">${list.map(b =>
@@ -840,8 +879,19 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
         (sub ? `<div class="sub">${esc(sub)}</div>` : "") + `</header>`;
     },
 
+    /* Regel 1: Text-Zurück oben, eine Ebene zurück.
+       label ist optional, Standard "← Zurück". Der Pfeil wird bei Bedarf ergänzt. */
     back(action, label) {
-      return `<button class="back" data-a="${esc(action || "menu")}">${esc(label || TEXT.back)}</button>`;
+      return `<button class="back" data-a="${esc(action || "menu")}">${esc(arrow(label || TEXT.back))}</button>`;
+    },
+
+    /* Regel 3: Schritt zurück in der unteren Leiste (Ghost-Button).
+       label: Verb oder Ziel ohne Pfeil, z. B. "Vorherige Übung". Ohne Label: "← Vorherige".
+       opts wie bei ui.btn (action, grow, grow2, confirm, disabled ...).
+       Standardaktion ist "prev". */
+    stepBack(label, opts) {
+      opts = Object.assign({ action: "prev", kind: "ghost" }, opts || {});
+      return ui.btn(arrow(label || TEXT.prev), opts);
     },
 
     /* Karte mit kleiner grauer Überschrift. inner ist fertiges HTML. */
@@ -880,7 +930,8 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
     },
 
     /* Feste untere Leiste. inner ist fertiges HTML.
-       layout: "col" (Buttons untereinander, höhere Leiste) | "cols" (nebeneinander) | leer (ein Button) */
+       layout: "col" (Buttons untereinander, höhere Leiste) | "cols" (nebeneinander) | leer (ein Button)
+       Schritt zurück darin: ui.stepBack("Vorherige Übung") (Regel 3). */
     bottom(inner, layout) {
       return `<div class="bottom"${layout === "col" ? " data-tall" : ""}>` +
         `<div class="inner ${layout || ""}">${inner}</div></div>`;
@@ -991,7 +1042,8 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
     /* Info-/Regeln-Screen.
        o: { title (Standard "INFO"), sub:"So funktioniert …",
             sections:[{ h:"🎯 Idee", p:"Text mit **fett**", ul:["…"], ol:["…"] }] }
-       "Zurück" und "Verstanden" führen über "closerules" dorthin zurück, woher du kamst. */
+       "Zurück" (Regel 1) und "Verstanden" führen über "closerules" dorthin zurück,
+       woher du kamst. */
     rules(o) {
       const sec = o.sections.map(s => `<h3>${esc(s.h)}</h3>` +
         (s.p ? `<p>${rich(s.p)}</p>` : "") +

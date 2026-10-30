@@ -3,128 +3,66 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#0b0d12">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Stimmgerät</title>
+<!-- Gemeinsame Bausteine (muss das ERSTE Skript sein) -->
+<script src="/common.js"></script>
 <style>
-  :root{
-    --bg:#0b0d12; --card:#151922; --card2:#1c2230; --line:#262d3d;
-    --text:#f2f4f8; --muted:#8c95a8;
-    --a1:#ff3b6b; --a2:#7c5cff; --ok:#2ee59d; --warn:#ffb020;
-    --grad:linear-gradient(135deg,var(--a1),var(--a2));
-  }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;background:var(--bg);color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;}
-  body{min-height:100vh;
-    background:
-      radial-gradient(600px 300px at 10% -5%,rgba(255,59,107,.18),transparent 60%),
-      radial-gradient(600px 300px at 100% 0%,rgba(124,92,255,.2),transparent 60%),
-      var(--bg);
-    background-attachment:fixed;touch-action:manipulation;overscroll-behavior-y:contain}
-  #app{max-width:480px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 120px);}
-  header{text-align:center;margin-bottom:14px}
-  .logo{font-size:34px;font-weight:900;letter-spacing:4px;
-    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
-  .sub{color:var(--muted);font-size:13px;margin-top:2px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:14px;
-    box-shadow:0 10px 30px rgba(0,0,0,.35)}
-  .row{display:flex;align-items:center;gap:10px}
-  .grow{flex:1;min-width:0}
-  button{font:inherit;color:inherit;border:0;cursor:pointer;-webkit-user-select:none;user-select:none;touch-action:manipulation}
-  a{color:inherit;text-decoration:none}
-  .btn{display:inline-block;text-align:center;background:var(--grad);color:#fff;font-weight:700;border-radius:14px;padding:14px 18px;font-size:16px;
-    transition:transform .1s,opacity .2s}
-  .btn:active{transform:scale(.97)}
-  .btn.block{width:100%}
-  .btn.ghost{background:var(--card2);border:1px solid var(--line);color:var(--text)}
-  .btn.stop{background:var(--card2);border:1px solid var(--a1);color:var(--a1)}
-  .bottom{position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(env(safe-area-inset-bottom) + 14px);
-    background:linear-gradient(to top,var(--bg) 60%,transparent);z-index:10}
-  .bottom .inner{max-width:480px;margin:0 auto;display:flex;gap:10px}
-  .hint{color:var(--muted);font-size:12px;text-align:center;margin-top:10px;line-height:1.4}
+/* Nur seiteneigenes CSS – alles andere kommt aus common.js */
+.display{text-align:center}
+.note{font-size:96px;font-weight:900;line-height:1;margin:var(--sp-4) 0 2px;min-height:96px;
+  font-variant-numeric:tabular-nums;transition:color var(--t-fade)}
+.note sub{font-size:32px;font-weight:700;vertical-align:baseline;margin-left:2px;color:var(--muted)}
+.note.idle{color:var(--line)}
+.note.good{color:var(--ok)}
+.note.off{color:var(--warn)}
+.hz{color:var(--muted);font-size:var(--fs-base);font-variant-numeric:tabular-nums;min-height:1.4em}
 
-  /* Anzeige */
-  .display{text-align:center}
-  .note{font-size:96px;font-weight:900;line-height:1;margin:4px 0 2px;min-height:96px;
-    font-variant-numeric:tabular-nums;transition:color .2s}
-  .note sub{font-size:32px;font-weight:700;vertical-align:baseline;margin-left:2px;color:var(--muted)}
-  .note.idle{color:var(--line)}
-  .note.good{color:var(--ok)}
-  .note.off{color:var(--warn)}
-  .hz{color:var(--muted);font-size:15px;font-variant-numeric:tabular-nums;min-height:1.4em}
-  .meter{position:relative;height:46px;margin:18px 6px 4px}
-  .meter .track{position:absolute;left:0;right:0;top:20px;height:8px;border-radius:99px;
-    background:var(--card2);border:1px solid var(--line)}
-  .meter .zone{position:absolute;left:46%;width:8%;top:20px;height:8px;background:rgba(46,229,157,.35)}
-  .meter .tick{position:absolute;top:14px;width:2px;height:20px;background:var(--line);transform:translateX(-1px)}
-  .meter .tick.mid{background:var(--muted);top:10px;height:28px}
-  .needle{position:absolute;top:6px;width:6px;height:36px;border-radius:9px;background:var(--line);
-    left:50%;transform:translateX(-50%);transition:left .12s linear,background .2s;will-change:left}
-  .needle.on{background:var(--grad)}
-  .needle.good{background:var(--ok)}
-  .scale{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin:0 0 4px;
-    font-variant-numeric:tabular-nums}
-  .status{margin-top:12px;font-size:14px;font-weight:600;color:var(--muted);min-height:1.4em}
-  .status.good{color:var(--ok)}
-  .status.off{color:var(--warn)}
+.meter{position:relative;height:46px;margin:var(--sp-18) var(--sp-6) var(--sp-4)}
+.meter .track{position:absolute;left:0;right:0;top:20px;height:8px;border-radius:var(--r-pill);
+  background:var(--card2);border:1px solid var(--line)}
+.meter .zone{position:absolute;left:46%;width:8%;top:20px;height:8px;background:rgba(var(--ok-rgb),.35)}
+.meter .tick{position:absolute;top:14px;width:2px;height:20px;background:var(--line);transform:translateX(-1px)}
+.meter .tick.mid{background:var(--muted);top:10px;height:28px}
+.needle{position:absolute;top:6px;width:6px;height:36px;border-radius:9px;background:var(--line);
+  left:50%;transform:translateX(-50%);transition:left .12s linear,background var(--t-fade);will-change:left}
+.needle.on{background:var(--grad)}
+.needle.good{background:var(--ok)}
 
-  @media (max-width:360px){.note{font-size:80px}}
-  @media (prefers-reduced-motion:reduce){.needle{transition:none}.note{transition:none}}
+.scale{display:flex;justify-content:space-between;color:var(--muted);font-size:var(--fs-hint);
+  margin:0 0 var(--sp-4);font-variant-numeric:tabular-nums}
+
+.status{margin-top:var(--sp-12);font-size:var(--fs-text);font-weight:600;color:var(--muted);min-height:1.4em}
+.status.good{color:var(--ok)}
+.status.off{color:var(--warn)}
+
+.btn.stop{background:var(--card2);border:1px solid var(--a1);color:var(--a1)}
+
+@media (max-width:360px){.note{font-size:80px}}
+@media (prefers-reduced-motion:reduce){.needle,.note{transition:none}}
 </style>
-<script src="/toast.js"></script>
 </head>
 <body>
-<div id="app">
-  <div class="row" style="margin-bottom:14px">
-    <a class="btn ghost grow" href="/index.html">⬅️ Home</a>
-    <a class="btn ghost grow" href="../klang.html">🎵 Klang-Tools</a>
-  </div>
-
-  <header>
-    <div class="logo">STIMMGERÄT</div>
-    <div class="sub">Spiele einen Ton, das Gerät zeigt dir, wie er klingt</div>
-  </header>
-
-  <div class="card display">
-    <div class="note idle" id="note">–</div>
-    <div class="hz" id="hz">– Hz</div>
-    <div class="meter" aria-hidden="true">
-      <div class="track"></div>
-      <div class="zone"></div>
-      <div class="tick" style="left:0%"></div>
-      <div class="tick" style="left:25%"></div>
-      <div class="tick mid" style="left:50%"></div>
-      <div class="tick" style="left:75%"></div>
-      <div class="tick" style="left:100%"></div>
-      <div class="needle" id="needle"></div>
-    </div>
-    <div class="scale"><span>−50 ct</span><span>0</span><span>+50 ct</span></div>
-    <div class="status" id="status">Mikrofon starten und Ton spielen</div>
-  </div>
-
-  <div class="hint">Das Mikrofon wird nur zum Messen genutzt. Es wird nichts aufgenommen und nichts gespeichert.</div>
-
-  <div class="bottom"><div class="inner">
-    <button class="btn block" id="micBtn">🎤 Mikrofon starten</button>
-  </div></div>
-</div>
+<div id="app"></div>
 
 <script>
 /* ---------- Einstellungen ---------- */
-const A4 = 440;                         /* feste Stimmung */
+const A4 = 440;        /* feste Stimmung */
 const NAMES = ["C","Cis","D","Dis","E","F","Fis","G","Gis","A","B","H"];
-const GOOD_CT = 5;                      /* ± Cent gelten als „gestimmt“ */
+const GOOD_CT = 5;     /* ± Cent gelten als „gestimmt“ */
+
+const TXT = {
+  start: "Mikrofon starten und Ton spielen",
+  listen: "Höre zu … spiele einen Ton"
+};
 
 /* ---------- Helfer ---------- */
-const $ = id => document.getElementById(id);
-const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const median = a => { const s = a.slice().sort((p, q) => p - q); return s[Math.floor(s.length / 2)]; };
 
 function noteHTML(m){
   const idx = ((m % 12) + 12) % 12;
-  return `${esc(NAMES[idx])}<sub>${Math.floor(m / 12) - 1}</sub>`;
+  return `${App.esc(NAMES[idx])}<sub>${Math.floor(m / 12) - 1}</sub>`;
 }
 
 /* ---------- Tonerkennung (YIN) ---------- */
@@ -163,6 +101,7 @@ function detectPitch(x, sr){
     }
   }
   if(tau < 0) return -1;
+
   /* Parabolische Interpolation */
   const a = cm[tau - 1], b = cm[tau], c = tau + 1 <= tauMax ? cm[tau + 1] : cm[tau];
   const den = (a + c - 2 * b);
@@ -171,33 +110,36 @@ function detectPitch(x, sr){
 }
 
 /* ---------- Anzeige ---------- */
+let noteEl = null, hzEl = null, needleEl = null, statusEl = null;
 const recent = [];
 let lastSeen = 0;
 
 function showIdle(text){
-  $("note").className = "note idle";
-  $("note").textContent = "–";
-  $("hz").textContent = "– Hz";
-  const nd = $("needle");
-  nd.className = "needle"; nd.style.left = "50%";
-  $("status").className = "status";
-  $("status").textContent = text;
+  if(!noteEl) return;
+  noteEl.className = "note idle";
+  noteEl.textContent = "–";
+  hzEl.textContent = "– Hz";
+  needleEl.className = "needle";
+  needleEl.style.left = "50%";
+  statusEl.className = "status";
+  statusEl.textContent = text;
 }
+
 function showTone(freq){
+  if(!noteEl) return;
   const midi = 69 + 12 * Math.log2(freq / A4);
   const m = Math.round(midi);
   const cents = Math.round((midi - m) * 100);
   const good = Math.abs(cents) <= GOOD_CT;
   const clamped = Math.max(-50, Math.min(50, cents));
-  $("note").className = "note " + (good ? "good" : "off");
-  $("note").innerHTML = noteHTML(m);
-  $("hz").textContent = freq.toFixed(1) + " Hz";
-  const nd = $("needle");
-  nd.className = "needle " + (good ? "good" : "on");
-  nd.style.left = (50 + clamped) + "%";
-  const st = $("status");
-  st.className = "status " + (good ? "good" : "off");
-  st.textContent = good ? "✓ Gestimmt"
+
+  noteEl.className = "note " + (good ? "good" : "off");
+  noteEl.innerHTML = noteHTML(m);
+  hzEl.textContent = freq.toFixed(1) + " Hz";
+  needleEl.className = "needle " + (good ? "good" : "on");
+  needleEl.style.left = (50 + clamped) + "%";
+  statusEl.className = "status " + (good ? "good" : "off");
+  statusEl.textContent = good ? "✓ Gestimmt"
     : (cents < 0 ? `Zu tief · ${Math.abs(cents)} ct – höher stimmen` : `Zu hoch · ${cents} ct – tiefer stimmen`);
 }
 
@@ -215,7 +157,7 @@ function loop(ts){
     showTone(median(recent));
   }else if(now - lastSeen > 500){
     recent.length = 0;
-    showIdle("Höre zu … spiele einen Ton");
+    showIdle(TXT.listen);
   }
 }
 
@@ -223,7 +165,7 @@ function loop(ts){
 async function startMic(){
   const AC = window.AudioContext || window.webkitAudioContext;
   if(!AC || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-    toast("Dieser Browser unterstützt kein Mikrofon.", "warn");
+    App.toast("Dieser Browser unterstützt kein Mikrofon.", "warn");
     return;
   }
   try{
@@ -239,15 +181,15 @@ async function startMic(){
     source.connect(analyser);
     running = true;
     lastSeen = performance.now();
-    $("micBtn").textContent = "⏹ Mikrofon stoppen";
-    $("micBtn").classList.add("stop");
-    showIdle("Höre zu … spiele einen Ton");
+    App.wake.on();
+    render();
     raf = requestAnimationFrame(loop);
   }catch(e){
     stopMic();
-    toast("Kein Zugriff auf das Mikrofon. Bitte Zugriff erlauben.", "warn");
+    App.toast("Kein Zugriff auf das Mikrofon. Bitte Zugriff erlauben.", "warn");
   }
 }
+
 function stopMic(){
   running = false;
   if(raf){ cancelAnimationFrame(raf); raf = null; }
@@ -256,12 +198,52 @@ function stopMic(){
   try{ if(ctx) ctx.close(); }catch(e){}
   ctx = stream = source = analyser = null;
   recent.length = 0;
-  $("micBtn").textContent = "🎤 Mikrofon starten";
-  $("micBtn").classList.remove("stop");
-  showIdle("Mikrofon starten und Ton spielen");
+  App.wake.off();
+  render();
 }
-$("micBtn").addEventListener("click", () => { running ? stopMic() : startMic(); });
+
+/* ---------- Screen ---------- */
+function render(){
+  App.render(
+    App.ui.topbar([{ label: "🎵 Klang-Tools", href: "../klang.html" }]) +
+    App.ui.header("STIMMGERÄT", "Spiele einen Ton, das Gerät zeigt dir, wie er klingt") +
+    App.ui.card("",
+      `<div class="note idle" id="note">–</div>
+       <div class="hz" id="hz">– Hz</div>
+       <div class="meter" aria-hidden="true">
+         <div class="track"></div>
+         <div class="zone"></div>
+         <div class="tick" style="left:0%"></div>
+         <div class="tick" style="left:25%"></div>
+         <div class="tick mid" style="left:50%"></div>
+         <div class="tick" style="left:75%"></div>
+         <div class="tick" style="left:100%"></div>
+         <div class="needle" id="needle"></div>
+       </div>
+       <div class="scale"><span>−50 ct</span><span>0</span><span>+50 ct</span></div>
+       <div class="status" id="status"></div>`,
+      "display") +
+    App.ui.hint("Das Mikrofon wird nur zum Messen genutzt. Es wird nichts aufgenommen und nichts gespeichert.") +
+    App.ui.bottom(App.ui.btn(running ? "⏹ Mikrofon stoppen" : "🎤 Mikrofon starten",
+      { block: true, action: "mic", cls: running ? "stop" : "" }))
+  );
+  noteEl = document.getElementById("note");
+  hzEl = document.getElementById("hz");
+  needleEl = document.getElementById("needle");
+  statusEl = document.getElementById("status");
+  showIdle(running ? TXT.listen : TXT.start);
+}
+
+/* ---------- Aktionen ---------- */
+App.on(a => {
+  if(a === "mic"){ running ? stopMic() : startMic(); return true; }
+});
+
 document.addEventListener("visibilitychange", () => { if(document.hidden && running) stopMic(); });
+
+/* ---------- Start ---------- */
+App.screens({ home: render }, { home: "home" });
+App.go("home");
 </script>
 </body>
 </html>

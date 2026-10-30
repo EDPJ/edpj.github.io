@@ -41,14 +41,17 @@ a{color:inherit;text-decoration:none}
 .btn{display:inline-block;text-align:center;background:var(--grad);color:#fff;font-weight:700;border-radius:14px;padding:14px 18px;font-size:16px;
   transition:transform .1s,opacity .2s}
 .btn:active{transform:scale(.97)}
+.btn.block{width:100%}
 .btn.ghost{background:var(--card2);border:1px solid var(--line);color:var(--text)}
 .btn.stop{background:linear-gradient(135deg,#ff3b6b,#c9162f)}
 .btn.small{padding:10px 14px;font-size:15px;border-radius:12px}
+.btn:disabled{opacity:.4}
 .bottom{position:fixed;left:0;right:0;bottom:0;padding:14px 16px calc(env(safe-area-inset-bottom) + 14px);
   background:linear-gradient(to top,var(--bg) 60%,transparent);z-index:10}
 .bottom .inner{max-width:480px;margin:0 auto;display:flex;gap:10px}
 .bottom .inner .btn{flex:1}
 .muted{color:var(--muted)}
+.hint{color:var(--muted);font-size:12px;text-align:center;margin-top:10px}
 
 /* große Zahl */
 .num{font-size:84px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.05}
@@ -76,15 +79,44 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 .seg button:active{transform:scale(.97)}
 .seg button.on{color:#fff;border-color:var(--a2);background:rgba(124,92,255,.22)}
 
+/* Lautstärke-Schalter */
+.toggle{display:flex;align-items:center;justify-content:space-between;width:100%;background:var(--card2);
+  border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-weight:700;font-size:16px;text-align:left;
+  transition:border-color .2s}
+.toggle:active{transform:scale(.99)}
+.toggle .sw{width:52px;height:30px;border-radius:99px;background:var(--bg);border:1px solid var(--line);
+  position:relative;flex:none;transition:background .2s}
+.toggle .sw i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--muted);
+  transition:transform .2s,background .2s}
+.toggle.on{border-color:var(--a1)}
+.toggle.on .sw{background:var(--grad);border-color:transparent}
+.toggle.on .sw i{transform:translateX(22px);background:#fff}
+
+/* Speicher */
+.count{font-size:12px;color:var(--muted);background:var(--card2);border:1px solid var(--line);
+  border-radius:99px;padding:2px 10px;font-weight:700;margin-left:6px;letter-spacing:0;vertical-align:1px}
+.srow{display:flex;gap:8px;margin-top:8px;animation:pop .25s ease}
+.sload{flex:1;min-width:0;text-align:left;background:var(--card2);border:1px solid var(--line);border-radius:14px;
+  padding:12px 14px;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sload:active{transform:scale(.98);border-color:var(--a2)}
+.sdel{width:48px;flex:none;background:var(--card2);border:1px solid var(--line);border-radius:14px;
+  font-size:16px;color:var(--muted)}
+.sdel:active{transform:scale(.95);border-color:var(--a1);color:var(--a1)}
+.empty{color:var(--muted);text-align:center;font-size:14px;padding:12px 0 2px}
+@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
 @media (max-width:360px){.num{font-size:64px}}
+@media (prefers-reduced-motion:reduce){.toggle .sw,.toggle .sw i,.srow{transition:none;animation:none}}
 </style>
 </head>
 <body>
 <div id="app">
+
   <div class="row nav">
     <a class="btn ghost grow" href="/index.html">⬅️ Home</a>
     <a class="btn ghost grow" href="../klang.html">🎵 Klang-Tools</a>
   </div>
+
   <header>
     <div class="logo">TONGENERATOR</div>
     <div class="sub">Erzeuge Töne von 20 bis 20 000 Hz</div>
@@ -94,14 +126,22 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
     <h2>Frequenz</h2>
     <div class="num grad" id="fbig">440</div>
     <div class="unit">Hertz · Ton <b id="fnote">A4</b> <span id="fcents" class="muted"></span></div>
+
     <div class="row" style="margin-top:14px">
       <button class="btn ghost grow small" data-d="-10">−10</button>
       <button class="btn ghost grow small" data-d="-1">−1</button>
       <button class="btn ghost grow small" data-d="1">+1</button>
       <button class="btn ghost grow small" data-d="10">+10</button>
     </div>
+
+    <div class="row" style="margin-top:10px">
+      <button class="btn ghost grow small" data-n="-1">▼ Ton tiefer</button>
+      <button class="btn ghost grow small" data-n="1">Ton höher ▲</button>
+    </div>
+
     <input type="range" id="fslider" min="0" max="1000" value="0" aria-label="Frequenz">
     <div class="scale"><span>20 Hz</span><span>200</span><span>2 000</span><span>20 000 Hz</span></div>
+
     <div style="margin-top:14px"><input type="number" id="fnum" min="20" max="20000" step="1" value="440" inputmode="decimal"> <span class="muted">Hz</span></div>
   </div>
 
@@ -112,34 +152,85 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 
   <div class="card">
     <h2>Wellenform</h2>
-    <div class="seg" id="waves">
-      <button data-w="sine" class="on">Sinus</button>
-      <button data-w="square">Rechteck</button>
-      <button data-w="sawtooth">Sägezahn</button>
-      <button data-w="triangle">Dreieck</button>
-    </div>
+    <div class="seg" id="waves"></div>
   </div>
 
   <div class="card">
-    <h2>Lautstärke · <span id="vtxt">20 %</span></h2>
-    <input type="range" id="vol" min="0" max="100" value="20" style="margin-top:4px" aria-label="Lautstärke">
+    <h2>Lautstärke · <span id="vtxt">50 %</span></h2>
+    <button class="toggle" id="loud" role="switch" aria-checked="false">
+      <span>Lauter · 85 %</span>
+      <span class="sw"><i></i></span>
+    </button>
+  </div>
+
+  <div class="card">
+    <h2>Speicher<span class="count" id="scount">0</span></h2>
+    <button class="btn ghost block" id="saveTone">💾 Aktuellen Ton speichern</button>
+    <div id="saved"></div>
+    <button class="btn ghost block" id="resetSaved" style="margin-top:12px">Alle gespeicherten Töne löschen</button>
+    <div class="hint" id="storeHint"></div>
   </div>
 
   <div class="bottom"><div class="inner">
     <button class="btn" id="go">▶ Ton abspielen</button>
   </div></div>
+
 </div>
 
 <script>
 const $ = id => document.getElementById(id);
 const NAMES = ["C","C♯","D","D♯","E","F","F♯","G","G♯","A","B","H"];
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
 const PRESETS = [
   ["A 440", 440], ["C 262", 261.63], ["E 330", 329.63],
   ["100 Hz", 100], ["1 kHz", 1000], ["5 kHz", 5000], ["10 kHz", 10000]
 ];
-let freq = 440, wave = "sine", vol = 0.2;
-let ctx = null, osc = null, gain = null, playing = false, stopT = null, wake = null, warned = false;
+
+/* ---------- Wellenformen ----------
+   native: eingebaute Form des Browsers
+   build:  Obertonreihe für eine eigene Wellenform (PeriodicWave)
+   lvl:    Pegelanpassung, damit die Formen ähnlich laut klingen */
+const HN = 64;
+function pulse(d){
+  const re = new Float32Array(HN + 1), im = new Float32Array(HN + 1);
+  for(let n = 1; n <= HN; n++){
+    re[n] = Math.sin(2 * Math.PI * n * d) / (n * Math.PI);
+    im[n] = (1 - Math.cos(2 * Math.PI * n * d)) / (n * Math.PI);
+  }
+  return [re, im];
+}
+function halfwave(){
+  const re = new Float32Array(HN + 1), im = new Float32Array(HN + 1);
+  for(let n = 2; n <= HN; n += 2) re[n] = -4 / (Math.PI * (n * n - 1));
+  return [re, im];
+}
+function harm(list){
+  const re = new Float32Array(list.length + 1), im = new Float32Array(list.length + 1);
+  list.forEach((a, i) => { im[i + 1] = a; });
+  return [re, im];
+}
+const WAVES = [
+  { id:"sine",     name:"Sinus",       native:true, lvl:1 },
+  { id:"square",   name:"Rechteck",    native:true, lvl:.6 },
+  { id:"sawtooth", name:"Sägezahn",    native:true, lvl:.7 },
+  { id:"triangle", name:"Dreieck",     native:true, lvl:.95 },
+  { id:"pulse25",  name:"Puls 25 %",   build:() => pulse(.25),  lvl:.65 },
+  { id:"pulse12",  name:"Puls 12 %",   build:() => pulse(.125), lvl:.6 },
+  { id:"half",     name:"Halbwelle",   build:halfwave,          lvl:1 },
+  { id:"organ",    name:"Orgel",       build:() => harm([1,.6,.4,.3,0,.2,0,.1]), lvl:.9 },
+  { id:"flute",    name:"Flöte",       build:() => harm([1,.35,.08,.04]), lvl:1 },
+  { id:"clarinet", name:"Klarinette",  build:() => harm([1,0,.75,0,.5,0,.14,0,.5,0,.12,0,.17]), lvl:.8 },
+  { id:"trumpet",  name:"Trompete",    build:() => harm([1,.9,.8,.65,.5,.4,.3,.2,.15,.1]), lvl:.65 }
+];
+const WAVE_BY_ID = {};
+WAVES.forEach(w => WAVE_BY_ID[w.id] = w);
+
+const VOL_NORMAL = 0.5, VOL_LOUD = 0.85;
+
+let freq = 440, wave = "sine", loud = false;
+let ctx = null, master = null, voice = null, playing = false, wake = null, warned = false;
+const waveCache = {};
 
 /* Regler (logarithmisch) <-> Frequenz */
 const sToF = s => 20 * Math.pow(1000, s / 1000);
@@ -159,19 +250,76 @@ function setFreq(f, fromSlider){
   const ni = noteInfo(freq);
   $("fnote").textContent = ni.name;
   $("fcents").textContent = (ni.cents > 0 ? "+" : "") + ni.cents + " ct";
-  if(osc && ctx) osc.frequency.setTargetAtTime(freq, ctx.currentTime, 0.015);
+  if(voice && ctx) voice.o.frequency.setTargetAtTime(freq, ctx.currentTime, 0.015);
 }
+
 function stepFreq(d){
   const t = Math.round(freq) + d;
   if(t > 20000) toast("Maximum erreicht: 20 000 Hz", "warn", 2000);
   else if(t < 20) toast("Minimum erreicht: 20 Hz", "warn", 2000);
   setFreq(t);
 }
-function setVol(v){
-  vol = clamp(v, 0, 1);
-  $("vtxt").textContent = Math.round(vol * 100) + " %";
-  /* quadratisch: feinere Regelung im leisen Bereich */
-  if(gain && ctx && playing) gain.gain.setTargetAtTime(vol * vol * 0.8, ctx.currentTime, 0.02);
+
+/* Sprung zum nächsthöheren / nächsttieferen Ton (Halbtonschritt, A4 = 440 Hz) */
+function stepNote(dir){
+  const n = 12 * Math.log2(freq / 440) + 69, r = Math.round(n);
+  const m = Math.abs(n - r) < 0.01 ? r + dir : (dir > 0 ? Math.ceil(n) : Math.floor(n));
+  const f = 440 * Math.pow(2, (m - 69) / 12);
+  if(f > 20000){ toast("Maximum erreicht: 20 000 Hz", "warn", 2000); return; }
+  if(f < 19.99){ toast("Minimum erreicht: 20 Hz", "warn", 2000); return; }
+  setFreq(f);
+}
+
+/* ---------- Lautstärke ---------- */
+function volGain(){
+  const v = loud ? VOL_LOUD : VOL_NORMAL;
+  return v * v * 0.8;               /* quadratisch: feinere Regelung im leisen Bereich */
+}
+function updateVol(){
+  $("vtxt").textContent = Math.round((loud ? VOL_LOUD : VOL_NORMAL) * 100) + " %";
+  $("loud").classList.toggle("on", loud);
+  $("loud").setAttribute("aria-checked", loud ? "true" : "false");
+  if(master && ctx) master.gain.setTargetAtTime(volGain(), ctx.currentTime, 0.03);
+}
+
+/* ---------- Audio ---------- */
+function ensureCtx(){
+  if(ctx) return;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  try{ ctx = new AC({ latencyHint: "playback" }); }   /* größerer Puffer = weniger Knacken */
+  catch(e){ ctx = new AC(); }
+  master = ctx.createGain();
+  master.gain.value = volGain();
+  master.connect(ctx.destination);
+}
+
+function setOscWave(o, id){
+  const w = WAVE_BY_ID[id];
+  if(w.native){ o.type = id; return; }
+  if(!waveCache[id]){
+    const [re, im] = w.build();
+    waveCache[id] = ctx.createPeriodicWave(re, im);
+  }
+  o.setPeriodicWave(waveCache[id]);
+}
+
+/* Jede Stimme hat eine eigene Hüllkurve: weich ein- und ausblenden verhindert Knacken */
+function makeVoice(){
+  const t = ctx.currentTime;
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  setOscWave(o, wave);
+  o.frequency.value = freq;
+  g.gain.value = 0;
+  o.connect(g); g.connect(master);
+  o.start(t);
+  g.gain.setTargetAtTime(WAVE_BY_ID[wave].lvl, t, 0.02);
+  o.onended = () => { try{ o.disconnect(); g.disconnect(); }catch(e){} };
+  return { o, g };
+}
+function fadeOut(v){
+  const t = ctx.currentTime;
+  v.g.gain.setTargetAtTime(0, t, 0.02);
+  try{ v.o.stop(t + 0.4); }catch(e){}
 }
 
 async function requestWake(){
@@ -181,20 +329,12 @@ function releaseWake(){ try{ if(wake){ wake.release(); wake = null; } }catch(e){
 
 async function start(){
   try{
-    if(!ctx){ const AC = window.AudioContext || window.webkitAudioContext; ctx = new AC(); }
+    ensureCtx();
     await ctx.resume();
   }catch(e){ toast("Audio wird von diesem Browser nicht unterstützt", "warn", 4000); return; }
-  clearTimeout(stopT);
-  if(osc){ try{ osc.stop(); }catch(e){} }
-  osc = ctx.createOscillator();
-  gain = ctx.createGain();
-  osc.type = wave;
-  osc.frequency.value = freq;
-  gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-  osc.connect(gain); gain.connect(ctx.destination);
-  osc.start();
+  if(voice) fadeOut(voice);
+  voice = makeVoice();
   playing = true;
-  gain.gain.setTargetAtTime(Math.max(0.0001, vol * vol * 0.8), ctx.currentTime, 0.03);
   requestWake();
   $("go").textContent = "■ Stopp";
   $("go").classList.add("stop");
@@ -205,23 +345,114 @@ async function start(){
     toast("Ton läuft · " + fmt(freq) + " Hz", "success", 1500);
   }
 }
+
 function stop(){
-  if(!osc) return;
+  if(!voice) return;
+  fadeOut(voice);
+  voice = null;
   playing = false;
-  gain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.02);
-  const o = osc;
-  stopT = setTimeout(() => { try{ o.stop(); o.disconnect(); }catch(e){} }, 150);
-  osc = null;
   releaseWake();
   $("go").textContent = "▶ Ton abspielen";
   $("go").classList.remove("stop");
   toast("Ton gestoppt", "info", 1500);
 }
 
+function setWave(id){
+  if(!WAVE_BY_ID[id]) return;
+  wave = id;
+  document.querySelectorAll("#waves button").forEach(x => x.classList.toggle("on", x.dataset.w === id));
+  if(voice){                          /* Überblenden statt hartem Umschalten */
+    const old = voice;
+    voice = makeVoice();
+    fadeOut(old);
+  }
+}
+
+/* ---------- Speicher (lokal, mit Löschmöglichkeit) ---------- */
+const KEY = "tongenerator_data";
+const MAX_SAVED = 20;
+let saved = [], storageOk = true;
+
+function loadStore(){
+  let raw = null;
+  try{ raw = localStorage.getItem(KEY); }catch(e){}
+  if(!raw) return;
+  try{
+    const d = JSON.parse(raw);
+    saved = (Array.isArray(d.saved) ? d.saved : [])
+      .map(t => ({ f: Number(t.f), w: String(t.w) }))
+      .filter(t => t.f >= 20 && t.f <= 20000 && WAVE_BY_ID[t.w])
+      .slice(0, MAX_SAVED);
+  }catch(e){}
+}
+function saveStore(){
+  try{
+    localStorage.setItem(KEY, JSON.stringify({ saved }));
+    storageOk = true;
+  }catch(e){ storageOk = false; }
+}
+function renderSaved(){
+  $("scount").textContent = saved.length;
+  $("saved").innerHTML = saved.length
+    ? saved.map((t, i) => `<div class="srow">
+        <button class="sload" data-a="load" data-i="${i}"><b>${fmt(t.f)} Hz</b> · ${noteInfo(t.f).name} <span class="muted">· ${WAVE_BY_ID[t.w].name}</span></button>
+        <button class="sdel" data-a="del" data-i="${i}" aria-label="Löschen">✕</button>
+      </div>`).join("")
+    : `<div class="empty">Noch nichts gespeichert.</div>`;
+  $("resetSaved").disabled = saved.length === 0;
+  $("storeHint").textContent = storageOk
+    ? "💾 Wird nur lokal auf diesem Gerät gespeichert"
+    : "⚠️ Speichern nicht möglich (nur bis zum Neuladen)";
+}
+
+$("saveTone").addEventListener("click", () => {
+  const f = Math.round(freq * 100) / 100;
+  if(saved.some(t => t.f === f && t.w === wave)){ toast("Dieser Ton ist schon gespeichert", "info", 2000); return; }
+  if(saved.length >= MAX_SAVED){ toast("Speicher voll – bitte erst einen Ton löschen", "warn", 2500); return; }
+  saved.push({ f, w: wave });
+  saveStore(); renderSaved();
+  toast("Ton gespeichert", "success", 1500);
+});
+
+$("saved").addEventListener("click", e => {
+  const b = e.target.closest("[data-a]"); if(!b) return;
+  const i = Number(b.dataset.i), t = saved[i]; if(!t) return;
+  if(b.dataset.a === "load"){
+    setFreq(t.f);
+    setWave(t.w);
+  }else{
+    saved.splice(i, 1);
+    saveStore(); renderSaved();
+    toast("Ton gelöscht", "info", 1500);
+  }
+});
+
+let resetArmed = false, resetT = null;
+$("resetSaved").addEventListener("click", e => {
+  const el = e.currentTarget;
+  if(resetArmed){
+    clearTimeout(resetT); resetArmed = false;
+    saved = [];
+    saveStore(); renderSaved();
+    el.textContent = "Alle gespeicherten Töne löschen";
+    toast("Speicher geleert", "info", 1500);
+  }else{
+    resetArmed = true;
+    el.textContent = "Sicher? Nochmal tippen";
+    resetT = setTimeout(() => { resetArmed = false; el.textContent = "Alle gespeicherten Töne löschen"; }, 4000);
+  }
+});
+
 /* ---------- Aufbau ---------- */
 $("presets").innerHTML = PRESETS.map(p => `<button data-f="${p[1]}">${p[0]}</button>`).join("");
 $("presets").addEventListener("click", e => { const b = e.target.closest("[data-f]"); if(b) setFreq(Number(b.dataset.f)); });
+
+$("waves").innerHTML = WAVES.map(w => `<button data-w="${w.id}"${w.id === wave ? ' class="on"' : ""}>${w.name}</button>`).join("");
+$("waves").addEventListener("click", e => { const b = e.target.closest("[data-w]"); if(b) setWave(b.dataset.w); });
+
 document.querySelectorAll("[data-d]").forEach(b => b.addEventListener("click", () => stepFreq(Number(b.dataset.d))));
+document.querySelectorAll("[data-n]").forEach(b => b.addEventListener("click", () => stepNote(Number(b.dataset.n))));
+
 $("fslider").addEventListener("input", e => setFreq(sToF(Number(e.target.value)), true));
 $("fnum").addEventListener("input", e => { if(e.target.value !== "") setFreq(e.target.value); });
 $("fnum").addEventListener("blur", e => {
@@ -229,18 +460,28 @@ $("fnum").addEventListener("blur", e => {
   if(e.target.value !== "" && (v < 20 || v > 20000)) toast("Gültiger Bereich: 20 bis 20 000 Hz", "warn", 2500);
   e.target.value = fmt(freq);
 });
-$("waves").addEventListener("click", e => {
-  const b = e.target.closest("[data-w]"); if(!b) return;
-  wave = b.dataset.w;
-  document.querySelectorAll("#waves button").forEach(x => x.classList.toggle("on", x === b));
-  if(osc) osc.type = wave;
-});
-$("vol").addEventListener("input", e => setVol(Number(e.target.value) / 100));
-$("go").addEventListener("click", () => playing ? stop() : start());
-document.addEventListener("visibilitychange", () => { if(!document.hidden && playing) requestWake(); });
 
+$("loud").addEventListener("click", () => {
+  loud = !loud;
+  updateVol();
+  if(loud) toast("⚠️ Lautstärke auf 85 % erhöht", "warn", 2500);
+  else toast("Lautstärke: 50 %", "info", 1500);
+});
+
+$("go").addEventListener("click", () => playing ? stop() : start());
+
+document.addEventListener("visibilitychange", () => {
+  if(document.hidden) return;
+  if(playing){
+    requestWake();
+    if(ctx && ctx.state !== "running") ctx.resume().catch(() => {});
+  }
+});
+
+loadStore();
+renderSaved();
 setFreq(440);
-setVol(0.2);
+updateVol();
 </script>
 </body>
 </html>

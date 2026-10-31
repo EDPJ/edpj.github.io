@@ -66,8 +66,7 @@ function figureSVG(p){
 }
 
 /* ---------- Speicher: lokal, Tag wechselt um 3:00 Uhr (daily) ---------- */
-const st = App.store.create("dehnen_v2", {
-  version: 1,
+const st = App.store.create("dehnen", {
   daily: true,
   defaults: { done: [], c: 0 },
   validate: d => d && Array.isArray(d.done) && typeof d.c === "number"

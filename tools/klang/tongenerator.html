@@ -250,7 +250,7 @@ function setWave(id){
 
 /* ---------- Speicher (lokal, mit Löschmöglichkeit) ---------- */
 const MAX_SAVED = 20;
-const st = App.store.create("tongenerator_data", {
+const st = App.store.create("klang_tongenerator", {
   defaults: { saved: [] },
   decode: d => ({
     saved: (Array.isArray(d && d.saved) ? d.saved : [])

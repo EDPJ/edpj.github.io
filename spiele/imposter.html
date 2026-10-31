@@ -47,7 +47,7 @@ const S = {
 };
 
 /* ---------- Speicher: nur lokal (localStorage), Format wie bisher ---------- */
-const store = App.store.create("imposter_data", {
+const store = App.store.create("imposter", {
   defaults: { players: [], hint: true, imposters: 1 },
   encode: s => ({
     p: s.players.map(p => [p.name, p.points]),

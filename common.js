@@ -28,7 +28,7 @@
    Es gibt genau drei Arten. Beschriftungen kommen aus App.text, nicht frei getippt.
 
    1. Text-Zurück oben:  App.ui.back(action, label?)
-      Aussehen: grauer Text-Button "← Zurück".
+      Aussehen: Ghost-Button "⬅️ Zurück" (sieht aus wie die anderen Buttons).
       Gilt für Unterscreens (Anleitung, Punktetafel, Korrigieren).
       Führt genau EINE Ebene zurück.
       Anleitung: Aktion "closerules" (zurück dorthin, woher man kam).
@@ -37,20 +37,24 @@
       aus der Seite: App.ui.back("scoreboard", "Zur Punktetafel").
 
    2. Menü oben:  App.ui.topbar(extra, { menu: true })
-      Aussehen: Ghost-Button "← Menü" (Aktion "menu", springt zum Startscreen).
+      Aussehen: Ghost-Button "⬅️ Menü" (Aktion "menu", springt zum Startscreen).
       Gilt für laufende Spiele und Übungen.
       Dort steht KEIN Home-Button, das Menü ist der Rückweg.
       Auf Menü- und Startscreens steht stattdessen "🏠 Home" (Standard von topbar).
       Nie eigene Namen wie "Zur Übersicht" verwenden.
 
    3. Schritt zurück unten:  App.ui.stepBack(label?, opts)
-      Aussehen: Ghost-Button in der unteren Leiste, immer "← " + Verb/Ziel.
+      Aussehen: Ghost-Button in der unteren Leiste, immer "⬅️ " + Verb/Ziel.
       Gilt für Schritte innerhalb eines Ablaufs.
-      Beispiele: "← Vorherige Übung", "← Ansagen ändern", "← Stiche korrigieren".
-      Ohne Label steht dort App.text.prev ("← Vorherige").
-      "← Zurück" allein steht NUR oben (Regel 1), nie in der unteren Leiste.
+      Beispiele: "⬅️ Vorherige Übung", "⬅️ Ansagen ändern", "⬅️ Stiche korrigieren".
+      Ohne Label steht dort App.text.prev ("⬅️ Vorherige").
+      "⬅️ Zurück" allein steht NUR oben (Regel 1), nie in der unteren Leiste.
 
-   Der Pfeil "←" wird automatisch ergänzt, wenn er im Label fehlt.
+   Der Pfeil "⬅️" wird automatisch ergänzt, wenn er im Label fehlt.
+
+   VORWÄRTSPFEILE: Es gibt nur Emoji. In allen Texten, die durch App.esc laufen
+   (Buttons, Hinweise, Anleitungen, Karten), wird "→" automatisch zu "➡️" und
+   "←" zu "⬅️". Die Pfeile in Listen (Startseite, Hubs) sind ebenfalls "➡️".
    ========================================================================== */
 (function () {
   "use strict";
@@ -231,8 +235,8 @@ header{text-align:center;margin-bottom:var(--sp-14)}
 .btn.pulse{animation:app-pulse 1.4s ease-out infinite}
 @keyframes app-pulse{0%{box-shadow:0 0 0 0 rgba(var(--ok-rgb),.55)}100%{box-shadow:0 0 0 18px rgba(var(--ok-rgb),0)}}
 .link{background:none;color:var(--muted);font-size:var(--fs-small);text-decoration:underline;padding:var(--sp-8)}
-.back{display:flex;align-items:center;gap:var(--sp-8);background:none;color:var(--muted);
-  font-size:var(--fs-base);padding:var(--sp-6) 0;margin-bottom:var(--sp-10)}
+.back{display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-8);background:var(--card2);border:1px solid var(--line);color:var(--text);font-weight:700;font-size:var(--fs-btn);border-radius:var(--r-btn);padding:var(--sp-10) var(--sp-16);margin-bottom:var(--sp-14);min-height:44px;box-shadow:var(--shadow-card);transition:transform var(--t-press),border-color var(--t-fade)}
+.back:active{transform:scale(.97);border-color:var(--a2)}
 .icon{width:var(--size-icon);height:var(--size-icon);border-radius:var(--r-small);background:var(--card2);
   border:1px solid var(--line);font-size:var(--fs-icon);display:grid;place-items:center;flex:none}
 .icon:active{transform:scale(.92)}
@@ -365,7 +369,7 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
 .app-toast.warn{background:var(--toast-warn-bg);color:var(--toast-warn-text)}
 
 @media (prefers-reduced-motion:reduce){
-  .app-toast,.player,.rank,a.item,.btn.pulse,.progress i,.switch,.switch::after{animation:none;transition:none}
+  .app-toast,.player,.rank,a.item,.back,.btn.pulse,.progress i,.switch,.switch::after{animation:none;transition:none}
 }
 `;
   const styleEl = document.createElement("style");
@@ -400,9 +404,9 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
     home: "🏠 Home",
     info: "📖 Info",
     rulesTitle: "INFO",
-    back: "← Zurück",          /* Regel 1: Text-Zurück oben (eine Ebene zurück) */
-    menu: "← Menü",            /* Regel 2: Menü oben in Spielen und Übungen */
-    prev: "← Vorherige",       /* Regel 3: Standard für Schritt zurück unten */
+    back: "⬅️ Zurück",          /* Regel 1: Text-Zurück oben (eine Ebene zurück) */
+    menu: "⬅️ Menü",            /* Regel 2: Menü oben in Spielen und Übungen */
+    prev: "⬅️ Vorherige",       /* Regel 3: Standard für Schritt zurück unten */
     understood: "Verstanden",
     confirm: "Sicher? Nochmal tippen",
     storageTitle: "Speicher",
@@ -434,14 +438,18 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
   /* ======================================================================
      4. HELFER UND FORMATIERUNG
      ====================================================================== */
-  const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+  /* Pfeil-Zeichen werden zu Emoji: ← wird ⬅️, → wird ➡️ */
+  const emoji = s => s.replace(/←/g, "⬅️").replace(/→/g, "➡️");
+
+  /* Maskiert HTML und ersetzt Pfeil-Zeichen durch Emoji */
+  const esc = s => emoji(String(s == null ? "" : s)).replace(/[&<>"']/g, c =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   /* Maskiert alles, **Text** wird fett */
   const rich = s => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
 
-  /* Setzt "← " vor das Label, falls der Pfeil fehlt (für alle Zurück-Buttons) */
-  const arrow = s => (/^\s*←/.test(s) ? String(s).trim() : "← " + String(s).trim());
+  /* Setzt "⬅️ " vor das Label, ersetzt ein vorhandenes ← (für alle Zurück-Buttons) */
+  const arrow = s => "⬅️ " + String(s).trim().replace(/^(?:←|\u2B05\uFE0F?)\s*/, "");
 
   /* Kopie, gemischt */
   const shuffle = a => shuffleInPlace(a.slice());
@@ -518,14 +526,13 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
          validate: d => true,      prüft die geladenen (decodierten) Daten
          encode: d => kompakt,     vor dem Speichern
          decode: kompakt => d,     nach dem Laden
-         version: 1,               andere Version -> Daten werden ignoriert (Defaults)
          daily: true,              Daten gelten nur für den heutigen Tag (Wechsel 3:00 Uhr)
          onFull: e => true|false   bei vollem Speicher kürzen, true = erneut versuchen
        });
        const d = st.load();  st.save(d);  st.remove();
-     Ohne version/daily wird das Format unverändert gespeichert (alte Daten bleiben lesbar).
-     Es gibt keine Migration: Wer das Format ändert, nimmt einen neuen Schlüssel
-     oder erhöht die Version. Alter Fortschritt darf verschwinden.
+     Es gibt keine Versionen. Ohne daily wird das Format unverändert gespeichert.
+     Es gibt keine Migration: Wer das Format ändert, nimmt einen neuen Schlüsselnamen
+     (ohne Versionsnummer im Namen). Alter Fortschritt darf verschwinden.
      ====================================================================== */
   const NONE = {};
   const store = {
@@ -579,20 +586,12 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
 
     create(key, opts) {
       opts = opts || {};
-      const envelope = opts.version != null || !!opts.daily;
       const clone = v => (v === undefined ? v : JSON.parse(JSON.stringify(v)));
-      const wrap = data => {
-        if (!envelope) return data;
-        const w = { _v: opts.version == null ? 0 : opts.version };
-        if (opts.daily) w._day = dayKey();
-        w.data = data;
-        return w;
-      };
+      const wrap = data => opts.daily ? { _day: dayKey(), data } : data;
       const unwrap = w => {
-        if (!envelope) return { ok: true, data: w };
-        if (!w || typeof w !== "object" || !("_v" in w)) return { ok: false };
-        if (opts.version != null && w._v !== opts.version) return { ok: false };
-        if (opts.daily && w._day !== dayKey()) return { ok: false };
+        if (w && typeof w === "object" && !Array.isArray(w) && "_v" in w && "data" in w) return { ok: false };
+        if (!opts.daily) return { ok: true, data: w };
+        if (!w || typeof w !== "object" || w._day !== dayKey()) return { ok: false };
         return { ok: true, data: w.data };
       };
       return {
@@ -770,41 +769,49 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
 
   /* ======================================================================
      10. TON, VIBRATION, DISPLAY-SPERRE
-     App.audio.unlock()  einmal in einem Klick aufrufen (z. B. beim Start)
-     App.audio.beep(880, 0.7, 0.5)   Frequenz Hz, Dauer s, Lautstärke
+     App.audio.unlock()  wird beim ersten Tipp/Tastendruck automatisch aufgerufen;
+                         ein manueller Aufruf ist nicht nötig, aber harmlos
+     App.audio.beep(880, 0.7, 0.5)   Frequenz Hz, Dauer s, Lautstärke; funktioniert danach
      App.vibrate(500)
      App.wake.on() / App.wake.off()  Display bleibt an, solange on
      ====================================================================== */
   let audioCtx = null;
+  function getCtx() {
+    if (audioCtx && audioCtx.state === "closed") audioCtx = null;
+    if (!audioCtx) { try { const AC = window.AudioContext || window.webkitAudioContext; if (AC) audioCtx = new AC(); } catch (e) {} }
+    return audioCtx;
+  }
+  /* iOS: Ton auch im Stumm-Modus */
+  try { if (navigator.audioSession) navigator.audioSession.type = "playback"; } catch (e) {}
   const audio = {
     unlock() {
       try {
-        if (!audioCtx) {
-          const AC = window.AudioContext || window.webkitAudioContext;
-          if (AC) audioCtx = new AC();
-        }
-        if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+        const ctx = getCtx(); if (!ctx) return;
+        if (ctx.state !== "running") { const p = ctx.resume(); if (p && p.catch) p.catch(() => {}); }
+        const buffer = ctx.createBuffer(1, 1, 22050); const source = ctx.createBufferSource();
+        source.buffer = buffer; source.connect(ctx.destination); source.start(0);
       } catch (e) {}
     },
     beep(freq, dur, vol) {
       try {
-        if (!audioCtx) return;
-        if (audioCtx.state === "suspended") audioCtx.resume();
-        freq = freq || 880; dur = dur || 0.7; vol = vol || 0.5;
-        const t0 = audioCtx.currentTime;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = "sine";
-        osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0.0001, t0);
-        gain.gain.exponentialRampToValueAtTime(vol, t0 + 0.05);
-        gain.gain.setValueAtTime(vol, t0 + Math.max(0.06, dur - 0.2));
-        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(t0); osc.stop(t0 + dur + 0.02);
+        const ctx = getCtx(); if (!ctx) return;
+        freq = freq || 880; dur = dur || 0.7; vol = vol == null ? 0.5 : Math.min(1, vol);
+        if (vol <= 0) return;
+        const play = () => {
+          const t0 = ctx.currentTime, osc = ctx.createOscillator(), gain = ctx.createGain();
+          const att = Math.min(0.05, dur / 4), rel = Math.min(0.2, dur / 2);
+          osc.type = "sine"; osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.0001, t0); gain.gain.exponentialRampToValueAtTime(vol, t0 + att);
+          gain.gain.setValueAtTime(vol, t0 + Math.max(att, dur - rel)); gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+          osc.connect(gain); gain.connect(ctx.destination); osc.start(t0); osc.stop(t0 + dur + 0.02);
+        };
+        if (ctx.state === "running") play(); else { const p = ctx.resume(); if (p && p.then) p.then(play).catch(() => {}); else play(); }
       } catch (e) {}
     }
   };
+  const UNLOCK_EVENTS = ["pointerdown", "touchend", "click", "keydown"];
+  function autoUnlock() { audio.unlock(); if (audioCtx && audioCtx.state === "running") UNLOCK_EVENTS.forEach(ev => document.removeEventListener(ev, autoUnlock, true)); }
+  UNLOCK_EVENTS.forEach(ev => document.addEventListener(ev, autoUnlock, { capture: true, passive: true }));
   const vibrate = ms => { try { if (navigator.vibrate) navigator.vibrate(ms || 500); } catch (e) {} };
 
   let wakeLock = null, wakePending = false, wakeWanted = false;
@@ -831,7 +838,10 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
   };
 
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) { checkDay(); requestWake(); }
+    if (!document.hidden) {
+      checkDay(); requestWake();
+      try { if (audioCtx && audioCtx.state !== "running" && audioCtx.state !== "closed") { const p = audioCtx.resume(); if (p && p.catch) p.catch(() => {}); } } catch (e) {}
+    }
   });
 
   /* ======================================================================
@@ -858,7 +868,7 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
 
     /* Kopfzeile. extra: [{label, action | href}] nach dem Home- bzw. Menü-Button.
        opts:
-         { menu:true }   Regel 2: "← Menü" als erster Button, KEIN Home-Button
+         { menu:true }   Regel 2: "⬅️ Menü" als erster Button, KEIN Home-Button
                          (für laufende Spiele und Übungen)
          { home:false }  ohne Home-Button
          { info:true }   "📖 Info" als letzter Button */
@@ -879,14 +889,14 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
         (sub ? `<div class="sub">${esc(sub)}</div>` : "") + `</header>`;
     },
 
-    /* Regel 1: Text-Zurück oben, eine Ebene zurück.
-       label ist optional, Standard "← Zurück". Der Pfeil wird bei Bedarf ergänzt. */
+    /* Regel 1: Ghost-Button "⬅️ Zurück" (sieht aus wie die anderen Buttons), eine Ebene zurück.
+       label ist optional, Standard "⬅️ Zurück". Der Emoji-Pfeil wird bei Bedarf ergänzt. */
     back(action, label) {
       return `<button class="back" data-a="${esc(action || "menu")}">${esc(arrow(label || TEXT.back))}</button>`;
     },
 
     /* Regel 3: Schritt zurück in der unteren Leiste (Ghost-Button).
-       label: Verb oder Ziel ohne Pfeil, z. B. "Vorherige Übung". Ohne Label: "← Vorherige".
+       label: Verb oder Ziel ohne Pfeil, z. B. "Vorherige Übung". Ohne Label: "⬅️ Vorherige".
        opts wie bei ui.btn (action, grow, grow2, confirm, disabled ...).
        Standardaktion ist "prev". */
     stepBack(label, opts) {
@@ -1064,7 +1074,7 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
           <div class="text">${esc(it.text || "")}</div>
           ${it.tag ? `<span class="tag small">${esc(it.tag)}</span>` : ""}
         </div>
-        <div class="arrow">›</div></a>`;
+        <div class="arrow">➡️</div></a>`;
     },
 
     /* Abschnitt mit Zähler. Leere Liste zeigt die gestrichelte Karte. */

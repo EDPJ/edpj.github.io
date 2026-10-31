@@ -85,7 +85,7 @@ function colorOf(v){
 }
 
 /* ---------- Speicher: nur lokal (localStorage) ---------- */
-const St = App.store.create("doubleit_data", {
+const St = App.store.create("doubleit", {
   defaults: { games:{}, best:{}, last:null },
   decode: d => ({ games:d.games || {}, best:d.best || {}, last:d.last || null }),
   /* Speicher voll: älteste Zugschritte entfernen und noch einmal versuchen */

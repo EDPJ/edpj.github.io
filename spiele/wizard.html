@@ -39,7 +39,7 @@
 const { ui, esc, fmt } = App;
 
 /* ---------- Speicher: nur lokal (localStorage) ---------- */
-const store = App.store.create("wizard_data_v1", {
+const store = App.store.create("wizard", {
   defaults: { players: [], house: true, game: null },
   encode: d => ({ p: d.players, h: d.house ? 1 : 0, g: d.game }),
   decode: raw => {

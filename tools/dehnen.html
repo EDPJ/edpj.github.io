@@ -19,11 +19,13 @@
   .phase{font-size:var(--fs-text);color:var(--muted);font-weight:600;min-height:1.3em}
   .time{font-size:68px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.1;margin:2px 0 var(--sp-10)}
   .time.prep{color:var(--warn)}
-  .time.switch{color:var(--a1)}
+  .time.wechsel{color:var(--a1)}
   .tbar{height:10px;background:var(--card2);border:1px solid var(--line);border-radius:var(--r-pill);overflow:hidden}
   .tbar>div{height:100%;width:100%;background:var(--grad);transform-origin:left center;transform:scaleX(0);will-change:transform}
   .tbar.prep>div{background:var(--warn)}
   .timer .btn{margin-top:var(--sp-14)}
+  /* „Geschafft“-Hinweis: .center aus common.js würde die Box auf 70vh aufblähen */
+  .okbox.center{min-height:0;display:block;gap:0;margin-bottom:var(--sp-14)}
   svg .limb{fill:none;stroke:var(--text);stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
   svg .backl{fill:none;stroke:#6b7490;stroke-width:9;stroke-linecap:round;stroke-linejoin:round}
   svg .headc{fill:var(--text)}
@@ -156,8 +158,9 @@ function updateTimerUI(){
   const txt = App.fmt.time(secs).replace(/^0/, "");
   if(txt !== lastTimeTxt){ timeEl.textContent = txt; lastTimeTxt = txt; }
   const prep = ph.type === "prep" && !T.finished;
+  /* Klasse "wechsel" statt "switch": .switch ist in common.js der Schiebeschalter */
   timeEl.classList.toggle("prep", prep);
-  timeEl.classList.toggle("switch", ph.type === "switch" && !T.finished);
+  timeEl.classList.toggle("wechsel", ph.type === "switch" && !T.finished);
   document.getElementById("tbarWrap").classList.toggle("prep", prep);
   let label;
   if(T.finished) label = "✅ Zeit abgelaufen – gut gemacht!";

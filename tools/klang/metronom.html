@@ -116,26 +116,13 @@ function renderHome() {
   }]);
 
   const bar = ui.bottom(ui.btn(running ? "■ Stopp" : "▶ Start",
-    { action: "toggle", kind: running ? "bad" : "", big: true }));
+    { block: true, action: "toggle", kind: running ? "bad" : "" }));
 
   App.render(
-    ui.topbar([{ label: "🎵 Klang-Tools", href: "../klang.html" }], { info: true }) +
+    ui.topbar([{ label: "🎵 Klang-Tools", href: "../klang.html" }]) +
     ui.header("METRONOM", "Gleichmäßiger Takt für jedes Tempo") +
     tempo + takt + volume + storage + bar
   );
-}
-
-function renderRules() {
-  App.render(ui.rules({
-    title: "METRONOM",
-    sub: "So funktioniert es",
-    sections: [
-      { h: "🥁 Tempo", p: "Stelle das Tempo mit den Tasten, dem Regler oder durch Antippen ein (20 bis 300 BPM)." },
-      { h: "👆 Tempo antippen", p: "Tippe mehrmals im gewünschten Takt auf den Button. Aus den letzten Tippern wird das Tempo berechnet." },
-      { h: "🎼 Takt", p: "Wähle 1 bis 12 Schläge pro Takt. Der **erste Schlag** jedes Takts klingt höher." },
-      { h: "💾 Speicher", p: "Gespeichert werden Schläge pro Takt und Lautstärke, nur lokal auf diesem Gerät. Das Tempo startet immer bei 100 BPM." }
-    ]
-  }));
 }
 
 /* ---------- Anzeige ohne Neuaufbau (wichtig beim Ziehen des Reglers) ---------- */
@@ -259,7 +246,7 @@ document.addEventListener("input", e => {
   if (e.target.id === "slider") setBpm(Number(e.target.value));
 });
 
-App.screens({ home: renderHome, rules: renderRules });
+App.screens({ home: renderHome });
 App.go("home");
 </script>
 </body>

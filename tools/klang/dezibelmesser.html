@@ -49,7 +49,7 @@ const HMAX = 120;                       /* 120 Punkte × 0,5 s = 60 s */
 const DEF_OFFSET = 95;
 
 /* ---------- Speicher: nur die Kalibrierung ---------- */
-const st = App.store.create("klang_db", {
+const st = App.store.create("klang_dezibelmesser", {
   defaults: { offset: DEF_OFFSET },
   validate: d => d && typeof d === "object" && Number(d.offset) > 0
 });

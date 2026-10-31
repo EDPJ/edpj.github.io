@@ -54,7 +54,7 @@
 
    VORWÄRTSPFEILE: Es gibt nur Emoji. In allen Texten, die durch App.esc laufen
    (Buttons, Hinweise, Anleitungen, Karten), wird "→" automatisch zu "➡️" und
-   "←" zu "⬅️". Die Pfeile in Listen (Startseite, Hubs) sind ebenfalls "➡️".
+   "←" zu "⬅️".
    ========================================================================== */
 (function () {
   "use strict";
@@ -353,7 +353,6 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
 .item .info{flex:1;min-width:0}
 .item .title{font-weight:800;font-size:var(--fs-title)}
 .item .text{color:var(--muted);font-size:var(--fs-small);margin-top:2px;line-height:var(--lh-small)}
-.item .arrow{color:var(--muted);font-size:var(--fs-stat);flex:none}
 .item.soon{border-style:dashed;box-shadow:none;opacity:.7}
 .item.soon .item-icon{background:var(--card2);border:1px solid var(--line)}
 
@@ -1073,8 +1072,7 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
           <div class="title">${esc(it.titel)}</div>
           <div class="text">${esc(it.text || "")}</div>
           ${it.tag ? `<span class="tag small">${esc(it.tag)}</span>` : ""}
-        </div>
-        <div class="arrow">➡️</div></a>`;
+        </div></a>`;
     },
 
     /* Abschnitt mit Zähler. Leere Liste zeigt die gestrichelte Karte. */

@@ -17,7 +17,10 @@
   .figure svg{width:100%;height:auto;max-height:32vh;display:block}
   .timer{text-align:center}
   .phase{font-size:var(--fs-text);color:var(--muted);font-weight:600;min-height:1.3em}
-  .time{font-size:68px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.1;margin:2px 0 var(--sp-10)}
+  .time{font-size:68px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.1;margin:2px 0 var(--sp-10);white-space:nowrap}
+  /* Jede Ziffer bekommt dieselbe feste Breite, damit die Anzeige nicht springt */
+  .time .dg{display:inline-block;width:1ch;text-align:center}
+  .time .col{display:inline-block;width:.5ch;text-align:center}
   .time.prep{color:var(--warn)}
   .time.wechsel{color:var(--a1)}
   .tbar{height:10px;background:var(--card2);border:1px solid var(--line);border-radius:var(--r-pill);overflow:hidden}
@@ -63,6 +66,13 @@ function figureSVG(p){
   s += `<circle class="headc" cx="${p.head[0]}" cy="${p.head[1]}" r="13"/>`;
   if(p.note) s += `<text x="10" y="18">${App.esc(p.note)}</text>`;
   return s + '</svg>';
+}
+
+/* ---------- Zeitanzeige: jedes Zeichen in eigener Box mit fester Breite ---------- */
+function timeHTML(txt){
+  return txt.split("").map(c =>
+    c === ":" ? '<span class="col">:</span>' : '<span class="dg">' + App.esc(c) + '</span>'
+  ).join("");
 }
 
 /* ---------- Speicher: lokal, Tag wechselt um 3:00 Uhr (daily) ---------- */
@@ -156,7 +166,7 @@ function updateTimerUI(){
   const ph = T.phases[T.i];
   const secs = Math.ceil(Math.max(0, T.phaseRem));
   const txt = App.fmt.time(secs).replace(/^0/, "");
-  if(txt !== lastTimeTxt){ timeEl.textContent = txt; lastTimeTxt = txt; }
+  if(txt !== lastTimeTxt){ timeEl.innerHTML = timeHTML(txt); lastTimeTxt = txt; }
   const prep = ph.type === "prep" && !T.finished;
   /* Klasse "wechsel" statt "switch": .switch ist in common.js der Schiebeschalter */
   timeEl.classList.toggle("prep", prep);
@@ -205,9 +215,10 @@ function nextExercise(){
 }
 function startButtonAction(){
   if(!N) return;
-  if(S.done.length >= N) return openExercise(0, true);
+  /* Übung öffnen, aber nicht starten: Der Start muss noch bestätigt werden */
+  if(S.done.length >= N) return openExercise(0, false);
   let i = S.done.includes(S.current) ? LIST.findIndex((_, k) => !S.done.includes(k)) : S.current;
-  openExercise(i < 0 ? 0 : i, true);
+  openExercise(i < 0 ? 0 : i, false);
 }
 
 /* ---------- Screens ---------- */
@@ -251,10 +262,10 @@ function renderRules(){
         p: `Jeden Tag ${N} Übungen für Rücken und Beine – eine nach der anderen, geführt vom Timer.` },
       { h: "⏱️ Timer",
         ul: [
-          "Mit „Beginnen“ startet die erste Übung.",
+          "Mit „Beginnen“ öffnet sich die erste Übung. Der Timer startet erst, wenn du „Übung starten“ tippst.",
           `Vor jeder Übung gibt es ${PREP_SEC} Sekunden Vorbereitung, dann läuft die Haltezeit.`,
           `Bei Übungen mit zwei Seiten gibt es dazwischen ${SWITCH_SEC} Sekunden zum Wechseln.`,
-          "Nach einer Übung öffnet sich automatisch die nächste. Der Timer wartet dann, bis du „Übung starten“ tippst.",
+          "Nach einer Übung öffnet sich automatisch die nächste. Auch bei „Vorherige Übung“ wartet der Timer, bis du „Übung starten“ tippst.",
           `Ein laufender Timer lässt sich nicht pausieren, aber jederzeit zurücksetzen. Dann beginnt er wieder mit ${PREP_SEC} Sekunden Vorbereitung.`,
           "Während einer Übung bleibt das Display an."
         ] },
@@ -290,7 +301,7 @@ function renderPlay(){
     App.ui.card("", figureSVG(ex.pose), "figure") +
     App.ui.card("",
       `<div class="phase" id="phase"></div>
-       <div class="time" id="time">0:00</div>
+       <div class="time" id="time">${timeHTML("0:00")}</div>
        <div class="tbar" id="tbarWrap"><div id="tbar"></div></div>` +
        timerBtn,
       "timer") +
@@ -311,17 +322,17 @@ function renderPlay(){
 /* ---------- Aktionen ---------- */
 App.on((a, el, i) => {
   switch(a){
-    case "start":   startButtonAction(); break;
+    case "start":   startButtonAction(); break;                    /* öffnet die Übung, Start muss bestätigt werden */
     case "open":    openExercise(i, true); break;
     case "menu":    setupTimer(false); App.go("home"); return true;
     case "go":      setupTimer(true); App.refresh(); break;        /* Übung starten (mit Vorbereitungszeit) */
     case "restart": setupTimer(true); App.refresh(); break;        /* startet wieder mit der Vorbereitungszeit */
-    case "prev":    if(S.current > 0) openExercise(S.current - 1, true); break;
+    case "prev":    if(S.current > 0) openExercise(S.current - 1, false); break;  /* Start muss bestätigt werden */
     case "next":    nextExercise(); break;
   }
 });
 
-/* ---------- Start: es läuft nichts, erst „Beginnen“ startet die erste Übung ---------- */
+/* ---------- Start: es läuft nichts, erst „Übung starten“ startet den Timer ---------- */
 App.screens({ home: renderHome, rules: renderRules, play: renderPlay }, { home: "home" });
 save();
 setupTimer(false);

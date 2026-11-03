@@ -18,9 +18,8 @@
   .timer{text-align:center}
   .phase{font-size:var(--fs-text);color:var(--muted);font-weight:600;min-height:1.3em}
   .time{font-size:68px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1.1;margin:2px 0 var(--sp-10);white-space:nowrap}
-  /* Jede Ziffer bekommt dieselbe feste Breite, damit die Anzeige nicht springt */
-  .time .dg{display:inline-block;width:1ch;text-align:center}
-  .time .col{display:inline-block;width:.5ch;text-align:center}
+  /* Jede Ziffer steht in einer Box mit der Breite der breitesten Ziffer (wird per Skript gemessen) */
+  .time .dg{display:inline-block;width:var(--dw,.62em);text-align:center}
   .time.prep{color:var(--warn)}
   .time.wechsel{color:var(--a1)}
   .tbar{height:10px;background:var(--card2);border:1px solid var(--line);border-radius:var(--r-pill);overflow:hidden}
@@ -68,12 +67,26 @@ function figureSVG(p){
   return s + '</svg>';
 }
 
-/* ---------- Zeitanzeige: jedes Zeichen in eigener Box mit fester Breite ---------- */
+/* ---------- Zeitanzeige: jede Ziffer in einer Box gleicher Breite ---------- */
 function timeHTML(txt){
   return txt.split("").map(c =>
-    c === ":" ? '<span class="col">:</span>' : '<span class="dg">' + App.esc(c) + '</span>'
+    /\d/.test(c) ? '<span class="dg">' + c + '</span>' : App.esc(c)
   ).join("");
 }
+/* Misst die breiteste Ziffer in der tatsächlich verwendeten Schrift */
+function fitDigits(){
+  if(!timeEl || !timeEl.parentNode) return;
+  const m = document.createElement("span");
+  m.className = "time";
+  m.style.cssText = "position:absolute;left:0;top:0;visibility:hidden;margin:0;pointer-events:none";
+  m.innerHTML = "0123456789".split("").map(d => "<span>" + d + "</span>").join("");
+  timeEl.parentNode.appendChild(m);
+  let max = 0;
+  m.querySelectorAll("span").forEach(s => { max = Math.max(max, s.getBoundingClientRect().width); });
+  m.remove();
+  if(max > 0) timeEl.style.setProperty("--dw", Math.ceil(max) + "px");
+}
+window.addEventListener("resize", fitDigits);
 
 /* ---------- Speicher: lokal, Tag wechselt um 3:00 Uhr (daily) ---------- */
 const st = App.store.create("dehnen", {
@@ -273,7 +286,7 @@ function renderRules(){
         ul: [
           "Eine Übung wird gespeichert, sobald ihre Zeit abgelaufen ist.",
           "„Erledigt & weiter“ speichert die Übung ebenfalls und öffnet die nächste.",
-          "Im Menü kannst du jede Übung direkt antippen.",
+          "Im Menü kannst du jede Übung antippen. Sie öffnet sich, und der Timer startet erst mit „Übung starten“.",
           "Ein neuer Tag beginnt um 3:00 Uhr nachts. Dann wird der Fortschritt vom Vortag ungültig."
         ] }
     ]
@@ -315,6 +328,7 @@ function renderPlay(){
   timeEl = document.getElementById("time");
   phaseEl = document.getElementById("phase");
   lastTimeTxt = ""; lastPhaseTxt = "";
+  fitDigits();
   updateTimerUI();
   if(T.running) tick();
 }
@@ -323,7 +337,7 @@ function renderPlay(){
 App.on((a, el, i) => {
   switch(a){
     case "start":   startButtonAction(); break;                    /* öffnet die Übung, Start muss bestätigt werden */
-    case "open":    openExercise(i, true); break;
+    case "open":    openExercise(i, false); break;                 /* Menü: öffnet die Übung, Start muss bestätigt werden */
     case "menu":    setupTimer(false); App.go("home"); return true;
     case "go":      setupTimer(true); App.refresh(); break;        /* Übung starten (mit Vorbereitungszeit) */
     case "restart": setupTimer(true); App.refresh(); break;        /* startet wieder mit der Vorbereitungszeit */

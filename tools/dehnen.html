@@ -132,7 +132,8 @@ function tick(){
     T.finished = true; T.running = false; T.i = T.phases.length - 1; T.phaseRem = 0;
     stopLoops();
     alertSignal();                       /* Ende der letzten Haltezeit */
-    updateTimerUI(); return;
+    nextExercise();                      /* weiter zur nächsten Übung – dort wird auf den Start gewartet */
+    return;
   }
   let acc = 0, idx = 0;
   while(idx < T.phases.length - 1 && el >= acc + T.phases[idx].t){ acc += T.phases[idx].t; idx++; }
@@ -163,13 +164,11 @@ function updateTimerUI(){
   document.getElementById("tbarWrap").classList.toggle("prep", prep);
   let label;
   if(T.finished) label = "✅ Zeit abgelaufen – gut gemacht!";
-  else if(!T.started) label = "Bereit";
+  else if(!T.started) label = "Bereit – starte, wenn du so weit bist";
   else label = ph.l + (ph.type === "hold" && ph.side ? ` (${ph.side}/2)` : "");
   if(label !== lastPhaseTxt){ phaseEl.textContent = label; lastPhaseTxt = label; }
   if(T.finished) barEl.style.transform = "scaleX(1)";
   else if(!T.started) barEl.style.transform = "scaleX(0)";
-  const nb = document.querySelector('[data-a="next"]');
-  if(nb) nb.classList.toggle("pulse", T.finished);
 }
 document.addEventListener("visibilitychange", () => {
   if(!document.hidden && T.running) tick();
@@ -201,7 +200,8 @@ function nextExercise(){
   }else{
     for(let k = 1; k <= N; k++){ const j = (S.current + k) % N; if(!S.done.includes(j)){ next = j; break; } }
   }
-  openExercise(next < 0 ? 0 : next, true);
+  /* Nächste Übung öffnen, aber nicht starten: Es wird VOR der Übung auf den Start gewartet */
+  openExercise(next < 0 ? 0 : next, false);
 }
 function startButtonAction(){
   if(!N) return;
@@ -254,12 +254,14 @@ function renderRules(){
           "Mit „Beginnen“ startet die erste Übung.",
           `Vor jeder Übung gibt es ${PREP_SEC} Sekunden Vorbereitung, dann läuft die Haltezeit.`,
           `Bei Übungen mit zwei Seiten gibt es dazwischen ${SWITCH_SEC} Sekunden zum Wechseln.`,
-          `Der Timer lässt sich nicht pausieren, aber jederzeit zurücksetzen. Dann beginnt er wieder mit ${PREP_SEC} Sekunden Vorbereitung.`,
+          "Nach einer Übung öffnet sich automatisch die nächste. Der Timer wartet dann, bis du „Übung starten“ tippst.",
+          `Ein laufender Timer lässt sich nicht pausieren, aber jederzeit zurücksetzen. Dann beginnt er wieder mit ${PREP_SEC} Sekunden Vorbereitung.`,
           "Während einer Übung bleibt das Display an."
         ] },
       { h: "✅ Fortschritt",
         ul: [
-          "„Erledigt & weiter“ speichert die Übung und startet die nächste.",
+          "Eine Übung wird gespeichert, sobald ihre Zeit abgelaufen ist.",
+          "„Erledigt & weiter“ speichert die Übung ebenfalls und öffnet die nächste.",
           "Im Menü kannst du jede Übung direkt antippen.",
           "Ein neuer Tag beginnt um 3:00 Uhr nachts. Dann wird der Fortschritt vom Vortag ungültig."
         ] }
@@ -274,6 +276,9 @@ function renderPlay(){
   const nextLabel = finishing
     ? (isDone ? "✓ Beenden" : "✓ Erledigt & beenden")
     : (isDone ? "Weiter →" : "✓ Erledigt & weiter");
+  const timerBtn = T.started
+    ? App.ui.btn("↻ Timer zurücksetzen", { kind: "ghost", block: true, action: "restart" })
+    : App.ui.btn("▶ Übung starten", { block: true, action: "go" });
 
   App.render(
     App.ui.topbar(null, { menu: true }) +
@@ -287,7 +292,7 @@ function renderPlay(){
       `<div class="phase" id="phase"></div>
        <div class="time" id="time">0:00</div>
        <div class="tbar" id="tbarWrap"><div id="tbar"></div></div>` +
-       App.ui.btn("↻ Timer zurücksetzen", { kind: "ghost", block: true, action: "restart" }),
+       timerBtn,
       "timer") +
     App.ui.card("So geht’s", `<p>${App.esc(ex.text)}</p>`, "rules") +
     App.ui.bottom(
@@ -309,7 +314,8 @@ App.on((a, el, i) => {
     case "start":   startButtonAction(); break;
     case "open":    openExercise(i, true); break;
     case "menu":    setupTimer(false); App.go("home"); return true;
-    case "restart": setupTimer(true); App.refresh(); break;   /* startet wieder mit der Vorbereitungszeit */
+    case "go":      setupTimer(true); App.refresh(); break;        /* Übung starten (mit Vorbereitungszeit) */
+    case "restart": setupTimer(true); App.refresh(); break;        /* startet wieder mit der Vorbereitungszeit */
     case "prev":    if(S.current > 0) openExercise(S.current - 1, true); break;
     case "next":    nextExercise(); break;
   }

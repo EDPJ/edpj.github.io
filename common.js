@@ -28,7 +28,7 @@
    Es gibt genau drei Arten. Beschriftungen kommen aus App.text, nicht frei getippt.
 
    1. Text-Zurück oben:  App.ui.back(action, label?)
-      Aussehen: Ghost-Button "⬅️ Zurück" (sieht aus wie die anderen Buttons).
+      Aussehen: Ghost-Button mit Pfeil-Icon und "Zurück" (sieht aus wie die anderen Buttons).
       Gilt für Unterscreens (Anleitung, Punktetafel, Korrigieren).
       Führt genau EINE Ebene zurück.
       Anleitung: Aktion "closerules" (zurück dorthin, woher man kam).
@@ -37,24 +37,29 @@
       aus der Seite: App.ui.back("scoreboard", "Zur Punktetafel").
 
    2. Menü oben:  App.ui.topbar(extra, { menu: true })
-      Aussehen: Ghost-Button "⬅️ Menü" (Aktion "menu", springt zum Startscreen).
+      Aussehen: Ghost-Button mit Pfeil-Icon und "Menü" (Aktion "menu", springt zum Startscreen).
       Gilt für laufende Spiele und Übungen.
       Dort steht KEIN Home-Button, das Menü ist der Rückweg.
-      Auf Menü- und Startscreens steht stattdessen "🏠 Home" (Standard von topbar).
+      Auf Menü- und Startscreens steht stattdessen "Home" mit Haus-Icon (Standard von topbar).
       Nie eigene Namen wie "Zur Übersicht" verwenden.
 
    3. Schritt zurück unten:  App.ui.stepBack(label?, opts)
-      Aussehen: Ghost-Button in der unteren Leiste, immer "⬅️ " + Verb/Ziel.
+      Aussehen: Ghost-Button in der unteren Leiste, immer Pfeil-Icon + Verb/Ziel.
       Gilt für Schritte innerhalb eines Ablaufs.
-      Beispiele: "⬅️ Vorherige Übung", "⬅️ Ansagen ändern", "⬅️ Stiche korrigieren".
-      Ohne Label steht dort App.text.prev ("⬅️ Vorherige").
-      "⬅️ Zurück" allein steht NUR oben (Regel 1), nie in der unteren Leiste.
+      Beispiele: "Vorherige Übung", "Ansagen ändern", "Stiche korrigieren" (jeweils mit Pfeil-Icon davor).
+      Ohne Label steht dort App.text.prev ("Vorherige" mit Pfeil-Icon).
+      "Zurück" allein steht NUR oben (Regel 1), nie in der unteren Leiste.
 
-   Der Pfeil "⬅️" wird automatisch ergänzt, wenn er im Label fehlt.
+   Der Pfeil (SVG-Icon) wird automatisch ergänzt, wenn er im Label fehlt.
 
-   VORWÄRTSPFEILE: Es gibt nur Emoji. In allen Texten, die durch App.esc laufen
-   (Buttons, Hinweise, Anleitungen, Karten), wird "→" automatisch zu "➡️" und
-   "←" zu "⬅️".
+   ICONS: Es gibt keine Emoji in common.js, alle Symbole sind SVG (siehe ICONS unten).
+     App.icon("home")            liefert das SVG als HTML-String (Größe = Schriftgröße, Farbe = Textfarbe)
+     ":home:" in einem Text      wird in allen Texten, die durch App.esc laufen (Buttons, Hinweise,
+                                 Anleitungen, Karten), zum Icon, z. B. App.ui.btn(":arrow-right: Weiter")
+     "→" und "←" im Text         werden automatisch zu den Pfeil-Icons (auch die entsprechenden Emoji-Pfeile)
+     Namen: arrow-left, arrow-right, home, info, save, warning, close, plus, minus,
+            game, construction, medal-1, medal-2, medal-3
+     Eintragsicons (it.icon in ui.item): Icon-Name oder eigener Text/Emoji der Seite.
    ========================================================================== */
 (function () {
   "use strict";
@@ -180,6 +185,38 @@
   };
 
   /* ======================================================================
+     1b. ICONS (SVG)
+     Alle Icons: viewBox 24 x 24, Linien in currentColor (Farbe folgt dem Text),
+     Größe 1.15em (siehe .ic im CSS). Medaillen sind farbig gefüllt.
+     ====================================================================== */
+  const ICONS = {
+    "arrow-left": '<path d="M19 12H5"/><path d="M11 6l-6 6 6 6"/>',
+    "arrow-right": '<path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>',
+    "home": '<path d="M3.5 11.5 12 4l8.5 7.5"/><path d="M6 10v9.5h12V10"/><path d="M10 19.5v-5h4v5"/>',
+    "info": '<path d="M12 6.8C10 5.3 7 4.8 4 5.3v13c3-.5 6 0 8 1.5 2-1.5 5-2 8-1.5v-13c-3-.5-6 0-8 1.5z"/><path d="M12 6.8v13"/>',
+    "save": '<path d="M5 4h11l3 3v13H5z"/><path d="M8 4v5h7V4"/><path d="M8 20v-6h8v6"/>',
+    "warning": '<path d="M12 4 3 19.5h18z"/><path d="M12 10v4.5"/><path d="M12 17.2h.01"/>',
+    "close": '<path d="M6 6l12 12"/><path d="M18 6 6 18"/>',
+    "plus": '<path d="M12 5v14"/><path d="M5 12h14"/>',
+    "minus": '<path d="M5 12h14"/>',
+    "game": '<rect x="2.5" y="7" width="19" height="11" rx="5.5"/><path d="M8 10.5v4"/><path d="M6 12.5h4"/><path d="M15.5 11.5h.01"/><path d="M17.5 13.8h.01"/>',
+    "construction": '<path d="M3 6.5h18V12H3z"/><path d="M8 6.5 5.5 12"/><path d="M13.5 6.5 11 12"/><path d="M19 6.5 16.5 12"/><path d="M6 12v7.5"/><path d="M18 12v7.5"/>',
+    "medal-1": medalSvg("#ffd24a", "#b8860b", "1"),
+    "medal-2": medalSvg("#c9d1de", "#7d8798", "2"),
+    "medal-3": medalSvg("#d98c52", "#8a4f24", "3")
+  };
+  function medalSvg(fill, edge, n) {
+    return '<path d="M8 2.5 11 9" stroke="' + edge + '"/><path d="M16 2.5 13 9" stroke="' + edge + '"/>' +
+      '<circle cx="12" cy="15" r="6.3" fill="' + fill + '" stroke="' + edge + '"/>' +
+      '<text x="12" y="18.2" text-anchor="middle" font-size="8.5" font-weight="800" font-family="sans-serif" ' +
+      'fill="#1a1d26" stroke="none">' + n + '</text>';
+  }
+  /* SVG-Icon als HTML-String. cls (optional): zusätzliche CSS-Klasse. Unbekannter Name: leer. */
+  const icon = (name, cls) => ICONS[name]
+    ? '<svg class="ic' + (cls ? " " + cls : "") + '" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' + ICONS[name] + "</svg>"
+    : "";
+
+  /* ======================================================================
      2. GEMEINSAMES CSS
      ====================================================================== */
   const CSS = `
@@ -240,6 +277,15 @@ header{text-align:center;margin-bottom:var(--sp-14)}
 .icon{width:var(--size-icon);height:var(--size-icon);border-radius:var(--r-small);background:var(--card2);
   border:1px solid var(--line);font-size:var(--fs-icon);display:grid;place-items:center;flex:none}
 .icon:active{transform:scale(.92)}
+
+/* SVG-Icons (aus common.js) */
+.nw{white-space:nowrap}
+.ic{width:1.15em;height:1.15em;vertical-align:-.22em;flex:none;fill:none;stroke:currentColor;
+  stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.icon .ic{width:1em;height:1em;vertical-align:0;stroke-width:2.4}
+.item-icon .ic{width:1em;height:1em;vertical-align:0;stroke:#fff;stroke-width:1.8}
+.item.soon .item-icon .ic{stroke:var(--muted)}
+.rank-pos .ic{width:1.3em;height:1.3em;vertical-align:-.35em}
 
 /* Eingabe */
 input[type=text]{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:var(--r-btn);
@@ -400,18 +446,18 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
   };
 
   const TEXT = {
-    home: "🏠 Home",
-    info: "📖 Info",
+    home: ":home: Home",
+    info: ":info: Info",
     rulesTitle: "INFO",
-    back: "⬅️ Zurück",          /* Regel 1: Text-Zurück oben (eine Ebene zurück) */
-    menu: "⬅️ Menü",            /* Regel 2: Menü oben in Spielen und Übungen */
-    prev: "⬅️ Vorherige",       /* Regel 3: Standard für Schritt zurück unten */
+    back: ":arrow-left: Zurück",          /* Regel 1: Text-Zurück oben (eine Ebene zurück) */
+    menu: ":arrow-left: Menü",            /* Regel 2: Menü oben in Spielen und Übungen */
+    prev: ":arrow-left: Vorherige",       /* Regel 3: Standard für Schritt zurück unten */
     understood: "Verstanden",
     confirm: "Sicher? Nochmal tippen",
     storageTitle: "Speicher",
     settingsTitle: "Einstellungen",
-    storageOk: "💾 Wird nur lokal auf diesem Gerät gespeichert",
-    storageFail: "⚠️ Speichern nicht möglich (nur bis zum Neuladen)",
+    storageOk: "Wird nur lokal auf diesem Gerät gespeichert",   /* reiner Text, kommt auch per textContent vor */
+    storageFail: "Speichern nicht möglich (nur bis zum Neuladen)",
     playersTitle: "Spieler",
     add: "Hinzufügen",
     namePlaceholder: "Name eingeben…",
@@ -437,18 +483,27 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
   /* ======================================================================
      4. HELFER UND FORMATIERUNG
      ====================================================================== */
-  /* Pfeil-Zeichen werden zu Emoji: ← wird ⬅️, → wird ➡️ */
-  const emoji = s => s.replace(/←/g, "⬅️").replace(/→/g, "➡️");
-
-  /* Maskiert HTML und ersetzt Pfeil-Zeichen durch Emoji */
-  const esc = s => emoji(String(s == null ? "" : s)).replace(/[&<>"']/g, c =>
+  /* Maskiert HTML (für Attribute und Nutzereingaben, ohne Icons) */
+  const escHtml = s => String(s == null ? "" : s).replace(/[&<>"']/g, c =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  /* Ersetzt Pfeil-Zeichen (←, →, auch als Emoji) und :icon-name: durch SVG-Icons.
+     Erwartet bereits maskierten Text. Unbekannte :namen: bleiben unverändert. */
+  const withIcons = t => t
+    .replace(/(?:←|\u2B05\uFE0F?)/g, ":arrow-left:")
+    .replace(/(?:→|\u27A1\uFE0F?)/g, ":arrow-right:")
+    /* Icon + folgendes Wort bleiben zusammen (kein Umbruch zwischen Icon und Text) */
+    .replace(/:([a-z][a-z0-9-]*):(\s+[^\s:<]+)?/g, (m, n, w) =>
+      !ICONS[n] ? m : w ? '<span class="nw">' + icon(n) + w + "</span>" : icon(n));
+
+  /* Maskiert HTML und ersetzt Pfeile und :icon-name: durch SVG-Icons (für sichtbaren Text) */
+  const esc = s => withIcons(escHtml(s));
 
   /* Maskiert alles, **Text** wird fett */
   const rich = s => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
 
-  /* Setzt "⬅️ " vor das Label, ersetzt ein vorhandenes ← (für alle Zurück-Buttons) */
-  const arrow = s => "⬅️ " + String(s).trim().replace(/^(?:←|\u2B05\uFE0F?)\s*/, "");
+  /* Setzt das Pfeil-Icon vor das Label, ersetzt ein vorhandenes ← (für alle Zurück-Buttons) */
+  const arrow = s => ":arrow-left: " + String(s).trim().replace(/^(?:←|\u2B05\uFE0F?|:arrow-left:)\s*/, "");
 
   /* Kopie, gemischt */
   const shuffle = a => shuffleInPlace(a.slice());
@@ -858,19 +913,19 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
       const cls = ["btn", opts.kind || "", opts.block ? "block" : "", opts.big ? "big" : "",
         opts.grow ? "grow" : "", opts.grow2 ? "grow2" : "", opts.cls || ""].filter(Boolean).join(" ");
       const inner = esc(label) + (opts.sub ? (opts.subLine ? "<br>" : " ") + `<small>${esc(opts.sub)}</small>` : "");
-      if (opts.href) return `<a class="${cls}" href="${esc(opts.href)}">${inner}</a>`;
-      return `<button class="${cls}" data-a="${esc(opts.action || "")}"` +
-        (opts.i != null ? ` data-i="${esc(opts.i)}"` : "") +
+      if (opts.href) return `<a class="${cls}" href="${escHtml(opts.href)}">${inner}</a>`;
+      return `<button class="${cls}" data-a="${escHtml(opts.action || "")}"` +
+        (opts.i != null ? ` data-i="${escHtml(opts.i)}"` : "") +
         (opts.confirm ? " data-confirm" : "") +
         (opts.disabled ? " disabled" : "") + `>${inner}</button>`;
     },
 
     /* Kopfzeile. extra: [{label, action | href}] nach dem Home- bzw. Menü-Button.
        opts:
-         { menu:true }   Regel 2: "⬅️ Menü" als erster Button, KEIN Home-Button
+         { menu:true }   Regel 2: "Menü" (Pfeil-Icon) als erster Button, KEIN Home-Button
                          (für laufende Spiele und Übungen)
          { home:false }  ohne Home-Button
-         { info:true }   "📖 Info" als letzter Button */
+         { info:true }   "Info" (Buch-Icon) als letzter Button */
     topbar(extra, opts) {
       opts = opts || {};
       const list = [];
@@ -888,14 +943,14 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
         (sub ? `<div class="sub">${esc(sub)}</div>` : "") + `</header>`;
     },
 
-    /* Regel 1: Ghost-Button "⬅️ Zurück" (sieht aus wie die anderen Buttons), eine Ebene zurück.
-       label ist optional, Standard "⬅️ Zurück". Der Emoji-Pfeil wird bei Bedarf ergänzt. */
+    /* Regel 1: Ghost-Button "Zurück" mit Pfeil-Icon (sieht aus wie die anderen Buttons), eine Ebene zurück.
+       label ist optional, Standard "Zurück". Das Pfeil-Icon wird bei Bedarf ergänzt. */
     back(action, label) {
-      return `<button class="back" data-a="${esc(action || "menu")}">${esc(arrow(label || TEXT.back))}</button>`;
+      return `<button class="back" data-a="${escHtml(action || "menu")}">${esc(arrow(label || TEXT.back))}</button>`;
     },
 
     /* Regel 3: Schritt zurück in der unteren Leiste (Ghost-Button).
-       label: Verb oder Ziel ohne Pfeil, z. B. "Vorherige Übung". Ohne Label: "⬅️ Vorherige".
+       label: Verb oder Ziel ohne Pfeil, z. B. "Vorherige Übung". Ohne Label: "Vorherige" (mit Pfeil-Icon).
        opts wie bei ui.btn (action, grow, grow2, confirm, disabled ...).
        Standardaktion ist "prev". */
     stepBack(label, opts) {
@@ -917,12 +972,12 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
     /* cls: "inline dealer", "inline start", "small" */
     tag(text, cls) { return `<span class="tag ${cls || ""}">${esc(text)}</span>`; },
     avatar(name, cls) {
-      return `<div class="avatar ${cls || ""}">${esc(String(name).charAt(0).toUpperCase())}</div>`;
+      return `<div class="avatar ${cls || ""}">${escHtml(String(name).charAt(0).toUpperCase())}</div>`;
     },
 
     /* Warnbox, wenn eine Datendatei fehlt oder leer ist. Gibt "" zurück, wenn alles da ist. */
     missingFile(file, ok) {
-      return ok ? "" : ui.warnbox(`⚠️ Die Datei <b>${esc(file)}</b> wurde nicht gefunden oder ist leer. ` +
+      return ok ? "" : ui.warnbox(`${icon("warning")} Die Datei <b>${esc(file)}</b> wurde nicht gefunden oder ist leer. ` +
         `Lege sie in denselben Ordner wie diese Seite.`);
     },
 
@@ -950,11 +1005,11 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
        Mit action wird zusätzlich data-d="-1" bzw. "1" gesetzt. */
     stepper(value, o) {
       o = o || {};
-      const extra = Object.keys(o.data || {}).map(k => ` data-${esc(k)}="${esc(o.data[k])}"`).join("");
+      const extra = Object.keys(o.data || {}).map(k => ` data-${escHtml(k)}="${escHtml(o.data[k])}"`).join("");
       const btn = (act, d, sign, lbl) =>
-        `<button class="icon" data-a="${esc(act)}"${o.action ? ` data-d="${d}"` : ""}${extra} aria-label="${lbl}">${sign}</button>`;
-      const core = `<div class="stepper">${btn(o.action || o.dec, -1, "−", "Weniger")}` +
-        `<div class="val">${esc(value)}</div>${btn(o.action || o.inc, 1, "+", "Mehr")}</div>`;
+        `<button class="icon" data-a="${escHtml(act)}"${o.action ? ` data-d="${d}"` : ""}${extra} aria-label="${lbl}">${sign}</button>`;
+      const core = `<div class="stepper">${btn(o.action || o.dec, -1, icon("minus"), "Weniger")}` +
+        `<div class="val">${esc(value)}</div>${btn(o.action || o.inc, 1, icon("plus"), "Mehr")}</div>`;
       return o.mini ? `<div class="mstep">${o.label ? `<div class="lbl">${esc(o.label)}</div>` : ""}${core}</div>` : core;
     },
 
@@ -970,8 +1025,8 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
           return `<div class="setting">${head}${ui.stepper(it.value, { dec: it.dec, inc: it.inc })}</div>`;
         }
         return `<div class="setting">${head}
-          <button class="switch ${it.on ? "on" : ""}" data-a="${esc(it.action)}" role="switch"
-            aria-checked="${!!it.on}" aria-label="${esc(it.label || it.title)}"></button></div>`;
+          <button class="switch ${it.on ? "on" : ""}" data-a="${escHtml(it.action)}" role="switch"
+            aria-checked="${!!it.on}" aria-label="${escHtml(it.label || it.title)}"></button></div>`;
       }).join("");
       return ui.card(title || TEXT.settingsTitle, rows);
     },
@@ -994,7 +1049,7 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
         return ui.btn(it.label || k.label || "", { kind: "ghost", grow: true, action, confirm: true });
       }).join("");
       return ui.card(title || TEXT.storageTitle,
-        `<div class="row">${btns}</div>${ui.hint(store.status(), store.ok ? "" : "warn")}`);
+        `<div class="row">${btns}</div>${ui.hint((store.ok ? ":save: " : ":warning: ") + store.status(), store.ok ? "" : "warn")}`);
     },
 
     /* Spielerkarte mit Eingabe, Liste, Löschen, Prüfungen.
@@ -1017,12 +1072,12 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
         const name = typeof p === "string" ? p : p.name;
         const pts = o.points ? `<div class="pts">${esc((p && p.points) || 0)}<small>PKT</small></div>` : "";
         const del = o.locked ? "" :
-          `<button class="icon" data-a="player-del" data-i="${i}" aria-label="Entfernen">✕</button>`;
-        return `<div class="player">${ui.avatar(name)}<div class="grow pname">${esc(name)}</div>${pts}${del}</div>`;
+          `<button class="icon" data-a="player-del" data-i="${i}" aria-label="Entfernen">${icon("close")}</button>`;
+        return `<div class="player">${ui.avatar(name)}<div class="grow pname">${escHtml(name)}</div>${pts}${del}</div>`;
       }).join("") : ui.empty(o.empty || `Noch keine Spieler. Füge mindestens ${min} hinzu.`);
       const form = o.locked ? "" :
         `<form class="row" id="addForm" autocomplete="off">
-          <div class="grow"><input type="text" id="nameInput" placeholder="${esc(TEXT.namePlaceholder)}" maxlength="${CFG.maxName}" enterkeyhint="done"></div>
+          <div class="grow"><input type="text" id="nameInput" placeholder="${escHtml(TEXT.namePlaceholder)}" maxlength="${CFG.maxName}" enterkeyhint="done"></div>
           <button class="btn" type="submit">${esc(TEXT.add)}</button></form>`;
       return ui.card(`${TEXT.playersTitle} (${n})${o.locked ? " · gesperrt" : ""}`,
         form + rows + (o.hint ? ui.hint(o.hint) : ""));
@@ -1037,12 +1092,12 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
       let rank = 0, prev = null;
       return sorted.map((r, k) => {
         if (r.total !== prev) { rank = k + 1; prev = r.total; }
-        const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : rank + ".";
+        const medal = rank <= 3 ? icon("medal-" + rank) : rank + ".";
         const hasGain = r.gain != null && !(opts.hideZero && r.gain === 0);
         return `<div class="rank ${rank === 1 ? "r1" : ""}" style="animation-delay:${k * 60}ms">
           <div class="rank-pos">${medal}</div>
           ${ui.avatar(r.name)}
-          <div class="grow"><div class="pname">${esc(r.name)}</div>${r.sub ? `<div class="psub">${esc(r.sub)}</div>` : ""}</div>
+          <div class="grow"><div class="pname">${escHtml(r.name)}</div>${r.sub ? `<div class="psub">${escHtml(r.sub)}</div>` : ""}</div>
           ${hasGain ? `<span class="gain ${r.gain < 0 ? "neg" : ""}">${esc(fmt.signed(r.gain))}</span>` : ""}
           <div class="rank-total">${esc(r.total)}</div></div>`;
       }).join("");
@@ -1050,7 +1105,7 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
 
     /* Info-/Regeln-Screen.
        o: { title (Standard "INFO"), sub:"So funktioniert …",
-            sections:[{ h:"🎯 Idee", p:"Text mit **fett**", ul:["…"], ol:["…"] }] }
+            sections:[{ h:"Idee", p:"Text mit **fett**", ul:["…"], ol:["…"] }] }
        "Zurück" (Regel 1) und "Verstanden" führen über "closerules" dorthin zurück,
        woher du kamst. */
     rules(o) {
@@ -1066,8 +1121,9 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
 
     /* Eintrag für Startseite und Hubs. it: {titel, text, icon, url, tag} */
     item(it, i) {
-      return `<a class="item" href="${esc(it.url)}" style="animation-delay:${i * 60}ms">
-        <div class="item-icon">${esc(it.icon || "🎮")}</div>
+      const ic = it.icon || "game";
+      return `<a class="item" href="${escHtml(it.url)}" style="animation-delay:${i * 60}ms">
+        <div class="item-icon">${ICONS[ic] ? icon(ic) : escHtml(ic)}</div>
         <div class="info">
           <div class="title">${esc(it.titel)}</div>
           <div class="text">${esc(it.text || "")}</div>
@@ -1080,7 +1136,7 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
       return `<div class="section">
         <div class="section-head"><h2>${esc(name)}</h2><span class="count">${items.length}</span></div>
         ${items.length ? items.map(ui.item).join("")
-          : `<div class="item soon"><div class="item-icon">🚧</div><div class="info"><div class="title">${esc(emptyText || "")}</div></div></div>`}
+          : `<div class="item soon"><div class="item-icon">${icon("construction")}</div><div class="info"><div class="title">${esc(emptyText || "")}</div></div></div>`}
       </div>`;
     }
   };
@@ -1092,7 +1148,7 @@ a.item:active{transform:scale(.98);border-color:var(--a2)}
     theme: THEME,
     cfg: CFG,
     text: TEXT,
-    fmt, esc, rich, shuffle, shuffleInPlace, isFilled, dayKey, checkPlayers,
+    fmt, esc, rich, icon, icons: ICONS, shuffle, shuffleInPlace, isFilled, dayKey, checkPlayers,
     toast, store, onNewDay,
     confirmTap, disarm, on,
     screens, go, refresh, render,

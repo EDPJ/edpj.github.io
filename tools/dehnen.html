@@ -56,14 +56,15 @@ const N = LIST.length;
 
 /* ---------- Figur als SVG ---------- */
 function figureSVG(p){
-  let s = '<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg" role="img">';
+  const vb = p.vb || [0, 0, 320, 200];   /* Bildausschnitt [x, y, Breite, Höhe] */
+  let s = `<svg viewBox="${vb.join(" ")}" xmlns="http://www.w3.org/2000/svg" role="img">`;
   if(p.wall) s += '<line class="wall" x1="274" y1="15" x2="274" y2="180"/>';
-  if(!p.nofloor) s += '<line class="floor" x1="12" y1="184" x2="308" y2="184"/>';
+  if(!p.nofloor) s += `<line class="floor" x1="${vb[0] + 12}" y1="184" x2="${vb[0] + vb[2] - 12}" y2="184"/>`;
   (p.hl||[]).forEach(h => s += `<circle class="hl" cx="${h[0]}" cy="${h[1]}" r="18"/>`);
   (p.back||[]).forEach(d => s += `<path class="backl" d="${d}"/>`);
   p.paths.forEach(d => s += `<path class="limb" d="${d}"/>`);
   s += `<circle class="headc" cx="${p.head[0]}" cy="${p.head[1]}" r="13"/>`;
-  if(p.note) s += `<text x="10" y="18">${App.esc(p.note)}</text>`;
+  if(p.note) s += `<text x="${vb[0] + 10}" y="${vb[1] + 18}">${App.esc(p.note)}</text>`;
   return s + '</svg>';
 }
 
@@ -272,7 +273,7 @@ function renderRules(){
     sub: "So funktioniert das Dehnprogramm",
     sections: [
       { h: "🎯 Idee",
-        p: `Jeden Tag ${N} Übungen für Rücken und Beine – eine nach der anderen, geführt vom Timer.` },
+        p: `Jeden Tag ${N} Übungen für Rücken, Beine und Rumpf – eine nach der anderen, geführt vom Timer.` },
       { h: "⏱️ Timer",
         ul: [
           "Mit „Beginnen“ öffnet sich die erste Übung. Der Timer startet erst, wenn du „Übung starten“ tippst.",

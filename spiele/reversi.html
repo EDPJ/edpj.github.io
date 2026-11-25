@@ -14,6 +14,7 @@
   .recrow{display:flex;align-items:center;gap:var(--sp-12);padding:var(--sp-10) var(--sp-12);background:var(--card2);border:1px solid var(--line);
     border-radius:var(--r-btn);animation:app-pop var(--t-move) ease both}
   .recrow + .recrow{margin-top:var(--sp-8)}
+  .recsep{height:1px;background:var(--line);margin:var(--sp-12) var(--sp-4)}
   .recrow .nm{font-weight:700;font-size:var(--fs-text)}
   .recrow .cols{display:flex;gap:var(--sp-14);flex:none}
   .recrow .col{text-align:center;min-width:46px}
@@ -59,11 +60,11 @@
 
   .disc{position:absolute;inset:10%;z-index:2}
   .disc.new{animation:drop .28s ease-out backwards}
-  .disc.flip{animation:lift .5s ease-in-out var(--dl,0s)}
+  .disc.flip{animation:lift .4s ease-in-out var(--dl,0s)}
   @keyframes drop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
   @keyframes lift{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
   .coin{position:absolute;inset:0;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;
-    transition:transform .5s ease-in-out;transition-delay:var(--dl,0s)}
+    transition:transform .4s ease-in-out;transition-delay:var(--dl,0s)}
   .disc.w .coin{transform:rotateY(180deg)}
   .coin i{position:absolute;inset:0;border-radius:50%;backface-visibility:hidden;-webkit-backface-visibility:hidden}
   .coin .fb{background:radial-gradient(circle at 35% 30%,#4b536b,#10131b 72%);
@@ -389,7 +390,7 @@ function schedCpu(){
     const m = cpuPick(R.bd, R.turn, R.g.level);
     thinking = false;
     if(m < 0 || !play(m)) updateUI();
-  }, 650);
+  }, 750);   // wartet, bis das Umdrehen des eigenen Zugs fertig ist (sonst ruckelt die Animation)
 }
 
 function undo(){
@@ -430,7 +431,7 @@ function startGame(fresh){
 function recRows(){
   const rows = [1,2,3].map(lv => ({ nm:LEVELS[lv], v:D.rec[lv], l:["Siege","Remis","Verl."] }));
   rows.push({ nm:"Zu zweit", v:D.rec.duo, l:["Schwarz","Remis","Weiß"] });
-  return rows.map(r => `<div class="recrow">
+  return rows.map((r, n) => (n === 3 ? '<div class="recsep"></div>' : "") + `<div class="recrow">
       <div class="grow nm">${App.esc(r.nm)}</div>
       <div class="cols">${r.v.map((x, k) => `<div class="col"><b>${x}</b><small>${r.l[k]}</small></div>`).join("")}</div>
     </div>`).join("");
@@ -572,13 +573,14 @@ function paint(animate){
         el.insertBefore(d, el.firstChild);
       }else{
         const dist = Math.max(Math.abs((k >> 3) - lr), Math.abs((k & 7) - lc));
-        disc.style.setProperty("--dl", animate ? Math.max(0, dist - 1) * 0.07 + "s" : "0s");
+        disc.style.setProperty("--dl", animate ? Math.max(0, dist - 1) * 0.05 + "s" : "0s");
         disc.classList.toggle("w", v === WHITE);
         if(animate){
           disc.classList.remove("flip");
           void disc.offsetWidth;
           disc.classList.add("flip");
-          setTimeout(() => disc.classList.remove("flip"), 1100);
+          clearTimeout(disc._ft);
+          disc._ft = setTimeout(() => disc.classList.remove("flip"), 900);
         }
       }
       el.dataset.v = v;
